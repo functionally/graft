@@ -1,0 +1,6 @@
+tmp/
+*.tmp
+*.sw?
+.ipynb_checkpoints/
+.local/
+.ihaskell/
