@@ -1,0 +1,36 @@
+name               : graft
+version            : 0.1.0.0
+synopsis           : Graph algorithms
+description        : Graph algorithms
+
+license            : MIT
+license-file       : LICENSE
+author             : Brian W Bush <code@functionally.io>
+maintainer         : Brian W Bush <code@functionally.io>
+copyright          : (c) 2018 Brian W Bush
+category           : Data
+stability          : Experimental
+build-type         : Simple
+cabal-version      : >= 1.10
+homepage           : https://bitbucket.org/functionally/graft
+bug-reports        : https://bwbush.atlassian.net/projects/HGRAFT/issues/
+package-url        : https://bitbucket.org/functionally/graft/downloads/graft-0.1.0.0.tar.gz
+
+source-repository head
+  type             : git
+  location         : https://bitbucket.org/functionally/graft.git
+
+library
+  exposed-modules  : Data.Graph.Algorithms
+                     Data.Graph.Examples
+                     Data.Graph.IO
+                     Data.Graph.Types
+  hs-source-dirs   : src
+  build-depends    : base         >= 4 && < 5
+                   , containers
+                   , heaps
+                   , stringbuilder
+  exposed          : True
+  buildable        : True
+  ghc-options      : -Wall
+  default-language : Haskell2010

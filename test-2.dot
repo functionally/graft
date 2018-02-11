@@ -1,0 +1,8 @@
+digraph "output" {
+  "SuperSource = 0.0" -> "Vertex \"A\" = 5.0" [label="+A <= 5.0"]
+  "SuperSource = 0.0" -> "Vertex \"B\" = 10.0" [label="+B <= 10.0"]
+  "Vertex \"A\" = 5.0" -> "Vertex \"C\" = 20.0" [label="AC <= 15.0"]
+  "Vertex \"B\" = 10.0" -> "Vertex \"D\" = 20.0" [label="BD <= 10.0"]
+  "Vertex \"D\" = 20.0" -> "Vertex \"F\" = 28.0" [label="DF <= 8.0"]
+  "Vertex \"F\" = 28.0" -> "SuperSink = 33.0" [label="F- <= 5.0"]
+}
