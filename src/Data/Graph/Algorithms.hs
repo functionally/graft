@@ -71,10 +71,14 @@ minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 -> c
 minimumCostFlow cost capacity set graph context start finish =
   let
+    -- Find how much can flow, regardless of cost.
     (path, _) = shortestPath capacity graph context start finish
     Just (flow, _) = measurePath capacity context path
+    -- Find the shortest path for that amount of flow.
     (path', _) = shortestPath (cost flow) graph context start finish
+    -- Find the amount of flow possible on the shortest path.
     Just (flow', _) = measurePath capacity context path'
+    -- Set the flow along the path.
     Just context' = setFlow set flow' context path'
   in
     if null path
