@@ -25,8 +25,8 @@ example1 =
     ]
 
 
-test :: a -> TaggedGraph (Vertex String) (String, Double, Double) (Sum Double, a)
-test c0 =
+test1 :: a -> TaggedGraph (Vertex String) (String, Double, Double) (Sum Double, a)
+test1 c0 =
   shortestPathTree
     (\c (_, x, _) -> Just (Sum x, c))
     (\_ v _ -> v == SuperSink)
@@ -47,7 +47,7 @@ test2 =
   bimap
     (\(TaggedItem v (Sum w, ())) -> String' $ show v ++ " = " ++ show w)
     (\(l, x, _) -> String' $ l ++ " <= " ++ show x)
-    (test ())
+    (test1 ())
 
 
 test3 :: (Path (Vertex String) (String, Double, Double), Int)
@@ -60,19 +60,19 @@ test3 =
     SuperSink
 
 
-test4 :: Maybe (Minimum Double, Int)
+test4 :: Maybe (Capacity Double, Int)
 test4 =
   measurePath
-    (\c (_, x, _) -> Just (Minimum x, c + 1))
+    (\c (_, x, _) -> Just (Capacity x, c + 1))
     0
     $ fst test3
 
 
 test5 :: Flows (String, Double, Double) Double
 test5 =
-  bareMinimumCostFlow
-    (\() (_, _, x) -> Just (x, ()))
-    (\() (_, x, _) -> Just (x, ()))
+  bareCapacityCostFlow
+    (\(_, _, x) -> x)
+    (\(_, x, _) -> x)
     example1
     SuperSource
     SuperSink

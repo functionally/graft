@@ -2,7 +2,7 @@
 
 
 module Data.Graph.Algorithms (
-  bareMinimumCostFlow
+  bareCapacityCostFlow
 , minimumCostFlow
 , shortestPath
 , shortestPathTree
@@ -12,7 +12,7 @@ module Data.Graph.Algorithms (
 
 import Control.Arrow (first)
 import Control.Monad (foldM, guard)
-import Data.Graph.Types (Flows, Graph(..), Measurer, Minimum(..), Path, TaggedGraph, TaggedItem(..), addEdge, getMinimum)
+import Data.Graph.Types (Flows, Graph(..), Measure, MeasureCapacity, MeasureCost, Capacity(..), Path, SetFlow, TaggedGraph, TaggedItem(..), addEdge, getCapacity)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
@@ -23,73 +23,76 @@ import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
 
 
 
-bareMinimumCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
-                    => Measurer () e w
-                    -> Measurer () e w'
+bareCapacityCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
+                    => (e -> w)
+                    -> (e -> w')
                     -> Graph v e
                     -> v
                     -> v
                     -> Flows e w'
-bareMinimumCostFlow cost capacity graph start finish =
+bareCapacityCostFlow cost capacity graph start finish =
   let
-    cost' context edge =
+    cost' _ context edge =
       do
-        (weight, ()) <- cost () edge
+        let
+          weight = cost edge
         guard
           $ context M.! edge > 0
         return (Sum weight, context)
-    capacity' weight context edge =
-      let
-        remaining = context M.! edge
-      in
-        case weight of
-          Nothing       -> Just (Minimum remaining, context)
-          Just weight'' -> let
-                               remaining' = remaining - getMinimum weight''
-                             in
-                               if remaining <= 0
-                                 then Nothing
-                                 else Just (Minimum remaining', M.insert edge remaining' context)
+    capacity' context edge =
+      do
+        guard
+          $ context M.! edge > 0
+        return (Capacity $ context M.! edge, context)
+    set' weight context edge =
+      do
+        let
+          remaining = context M.! edge
+          remaining' = remaining - getCapacity weight
+        guard
+          $ remaining > 0
+        return $ M.insert edge remaining' context
   in
-    M.mapWithKey (\edge weight -> fst (fromJust $ capacity () edge) - weight)
-      $ minimumCostFlow cost' capacity' graph
-        (foldr (\edge -> M.insert edge . fst . fromJust $ capacity () edge) M.empty $ allEdges graph)
+    M.mapWithKey (\edge weight -> capacity edge - weight)
+      $ minimumCostFlow cost' capacity' set' graph
+        (foldr (\edge -> M.insert edge $ capacity edge) M.empty $ allEdges graph)
         start
         finish
 
 
-minimumCostFlow :: (Ord v, Ord e, Ord w, Monoid w, Monoid w')
-                => Measurer c e w
-                -> (Maybe w' -> Measurer c e w')
+minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
+                => MeasureCost c e flow cost
+                -> MeasureCapacity c e flow
+                -> SetFlow c e flow
                 -> Graph v e
                 -> c
                 -> v
                 -> v
                 -> c
-minimumCostFlow cost capacity graph context start finish =
+minimumCostFlow cost capacity set graph context start finish =
   let
-    (path, _) = shortestPath cost graph context start finish
-    context' = remeasurePath capacity context path
+    (path, _) = shortestPath capacity graph context start finish
+    Just (flow, _) = measurePath capacity context path
+    (path', _) = shortestPath (cost flow) graph context start finish
+    Just (flow', _) = measurePath capacity context path'
+    Just context' = setFlow set flow' context path'
   in
     if null path
       then context
-      else minimumCostFlow cost capacity graph context' start finish
+      else minimumCostFlow cost capacity set graph context' start finish
 
 
-remeasurePath :: Monoid w
-              => (Maybe w -> Measurer c e w)
-              -> c
-              -> Path v e
-              -> c
-remeasurePath measure context path =
-  maybe context snd
-    $ do
-      (weight, _) <- measurePath (measure Nothing) context path
-      measurePath (measure $ Just weight)  context path
+setFlow :: Monoid w
+        => SetFlow c e w
+        -> w
+        -> c
+        -> Path v e
+        -> Maybe c
+setFlow measure flow = foldM (\context' (_, _, edge) -> measure flow context' edge)
 
 
 measurePath :: Monoid w
-            => Measurer c e w
+            => Measure c e w
             -> c
             -> Path v e
             -> Maybe (w, c)
@@ -100,7 +103,7 @@ measurePath measure context =
 
 
 shortestPath :: (Monoid w, Ord w, Ord v, Ord e)
-             => Measurer c e w
+             => Measure c e w
              -> Graph v e
              -> c
              -> v
@@ -126,7 +129,7 @@ shortestPath measure graph context start finish =
 
 
 shortestPathTree :: (Monoid w, Ord w, Ord v, Ord e)
-                 => Measurer c e w
+                 => Measure c e w
                  -> (c -> v -> w -> Bool)
                  -> Graph v e
                  -> c
@@ -141,7 +144,7 @@ shortestPathTree measure halt graph context start =
 
 
 shortestPathTree' :: (Monoid w, Ord w, Ord v, Ord e)
-                  => Measurer c e w
+                  => Measure c e w
                   -> (c -> v -> w -> Bool)
                   -> Graph v e
                   -> Heap (H.Entry w (TaggedItem v (w, c, TaggedGraph v e (w, c) -> TaggedGraph v e (w, c))))

@@ -13,11 +13,14 @@ module Data.Graph.Types (
 , Edge(..)
 , addEdge
 , makeGraph
-, Measurer
+, Measure
+, MeasureCost
+, MeasureCapacity
+, SetFlow
 , Path
-, Minimum(..)
-, hasMinimum
-, getMinimum
+, Capacity(..)
+, hasCapacity
+, getCapacity
 , Flows
 ) where
 
@@ -135,31 +138,46 @@ makeGraph :: (Ord v, Ord e) => [(v, v, e)] -> Graph v e
 makeGraph = foldl addEdge mempty
 
 
-type Measurer context edge weight = context -> edge -> Maybe (weight, context)
+type Measure context edge weight = context -> edge -> Maybe (weight, context)
+
+
+type MeasureCost context edge flow cost = flow -> context -> edge -> Maybe (cost, context)
+
+
+type MeasureCapacity context edge flow = context -> edge -> Maybe (flow, context)
+
+
+type SetFlow context edge flow = flow -> context -> edge -> Maybe context
 
 
 type Path v e = [(v, v, e)]
 
 
 
-data Minimum a = Minimum a | NoMinimum
-  deriving (Eq, Ord, Read, Show)
+data Capacity a = Capacity a | NoCapacity
+  deriving (Eq, Read, Show)
 
-instance Ord a => Monoid (Minimum a) where
-  mempty = NoMinimum
-  mappend NoMinimum   x           = x
-  mappend x           NoMinimum   = x
-  mappend (Minimum x) (Minimum y) = Minimum $ minimum [x, y]
+instance Ord a => Ord (Capacity a) where
+  compare NoCapacity   NoCapacity   = EQ
+  compare NoCapacity   _            = GT
+  compare _            NoCapacity   = LT
+  compare (Capacity x) (Capacity y) = compare x y
+
+instance Ord a => Monoid (Capacity a) where
+  mempty = NoCapacity
+  mappend NoCapacity   x            = x
+  mappend x            NoCapacity   = x
+  mappend (Capacity x) (Capacity y) = Capacity $ minimum [x, y]
 
 
-hasMinimum :: Minimum a -> Bool
-hasMinimum NoMinimum = False
-hasMinimum _         = True
+hasCapacity :: Capacity a -> Bool
+hasCapacity NoCapacity = False
+hasCapacity _         = True
 
 
-getMinimum :: Minimum a -> a
-getMinimum NoMinimum   = error "getMinimum: no value."
-getMinimum (Minimum x) = x
+getCapacity :: Capacity a -> a
+getCapacity NoCapacity   = error "getCapacity: no value."
+getCapacity (Capacity x) = x
 
 
 type Flows e w = Map e w
