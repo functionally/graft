@@ -23,7 +23,7 @@ import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
 
 
 
-bareMinimumCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w', Show e, Show w, Show w', Show v)
+bareMinimumCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
                     => Measurer () e w
                     -> Measurer () e w'
                     -> Graph v e
@@ -58,7 +58,7 @@ bareMinimumCostFlow cost capacity graph start finish =
         finish
 
 
-minimumCostFlow :: (Ord v, Ord e, Ord w, Monoid w, Monoid w', Show v, Show e, Show w, Show w', Show c)
+minimumCostFlow :: (Ord v, Ord e, Ord w, Monoid w, Monoid w')
                 => Measurer c e w
                 -> (Maybe w' -> Measurer c e w')
                 -> Graph v e
@@ -76,7 +76,7 @@ minimumCostFlow cost capacity graph context start finish =
       else minimumCostFlow cost capacity graph context' start finish
 
 
-remeasurePath :: Monoid w => Show w
+remeasurePath :: Monoid w
               => (Maybe w -> Measurer c e w)
               -> c
               -> Path v e

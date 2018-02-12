@@ -1,7 +1,7 @@
 { mkDerivation, base, containers, heaps, stringbuilder, stdenv }:
 mkDerivation {
   pname = "graft";
-  version = "0.1.0.0";
+  version = "0.1.0.1";
   src = ./.;
   libraryHaskellDepends = [ base containers heaps stringbuilder ];
   homepage = "https://bitbucket.org/functionally/graft";
