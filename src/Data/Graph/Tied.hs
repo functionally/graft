@@ -75,24 +75,26 @@ tieGraph adjacencies =
       M.mapWithKey
         (
           \from ->
-           S.map
-             (
-            \(to, edgeLabel) ->
-            let
-              vertexFrom = vertexTies M.! from
-              vertexTo   = vertexTies M.! to
-            in
-              (to, Edge{..})
-          )
+            S.map
+              (
+                \(to, edgeLabel) ->
+                  let
+                    vertexFrom = vertexTies M.! from
+                    vertexTo   = vertexTies M.! to
+                  in
+                    (to, Edge{..})
+              )
         )
         adjacencies
+    rev (x, (y, z)) = (y, (x, z))
     incomingEdgeTies :: Map v (Set (v, Edge v e))
     incomingEdgeTies =
       M.fromList
-        $ mapReduce
+        . mapReduce
           id
-          (\to fromEdges -> (to , S.fromList fromEdges))
-        $ concatMap (\(from, toEdges) -> [(to, (from, edge)) | (to, edge) <- S.toList toEdges])
+          ((. S.fromList) . (,))
+        . fmap rev
+        . concatMap (uncurry $ (. S.toList) . fmap . (,))
         $ M.toList outgoingEdgeTies
   in
     TiedGraph
