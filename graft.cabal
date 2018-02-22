@@ -1,5 +1,5 @@
 name               : graft
-version            : 0.1.1.0
+version            : 0.1.2.0
 synopsis           : Graph algorithms
 description        : Graph algorithms
 
@@ -24,11 +24,13 @@ library
   exposed-modules  : Data.Graph.Algorithms
                      Data.Graph.Examples
                      Data.Graph.IO
+                     Data.Graph.Tied
                      Data.Graph.Types
   hs-source-dirs   : src
   build-depends    : base         >= 4 && < 5
                    , containers
                    , heaps
+                   , raft
                    , stringbuilder
   exposed          : True
   buildable        : True
