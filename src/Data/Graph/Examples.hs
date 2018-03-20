@@ -78,3 +78,17 @@ test5 =
     SuperSink
 
 
+example2 ::  Graph (Vertex String) (String, Double, Double)
+example2 =
+  makeGraph
+    [
+      (SuperSource    , Vertex "P:EP"  , ("+P:EP" ,   5.6, 1.75))
+    , (SuperSource    , Vertex "P:BA"  , ("+P:BA" , 226.9, 1.75))
+    , (Vertex "P:EP"  , Vertex "T:2:EP", ("F:1:EP", 999.9, 3.67))
+    , (Vertex "P:BA"  , Vertex "T:2:BA", ("F:1:BA", 999.9, 3.67))
+    , (Vertex "T:2:EP", Vertex "C:EP"  , ("F:3:EP", 999.9, 0.06))
+    , (Vertex "T:2:BA", Vertex "C:BA"  , ("F:3:BA", 999.9, 0.06))
+    , (Vertex "T:2:EP", Vertex "T:2:BA", ("F1831" , 999.9, 0.67))
+    , (Vertex "T:2:BA", Vertex "T:2:EP", ("R1831" , 999.9, 0.67))
+    , (Vertex "C:EP"  , SuperSink      , ("-D:EP" ,  68.1, 0.00))
+    ]
