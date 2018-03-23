@@ -90,5 +90,15 @@ example2 =
     , (Vertex "T:2:BA", Vertex "C:BA"  , ("F:3:BA", 999.9, 0.06))
     , (Vertex "T:2:EP", Vertex "T:2:BA", ("F1831" , 999.9, 0.67))
     , (Vertex "T:2:BA", Vertex "T:2:EP", ("R1831" , 999.9, 0.67))
-    , (Vertex "C:EP"  , SuperSink      , ("-D:EP" ,  68.1, 0.00))
+    , (Vertex "C:EP"  , SuperSink      , ("EP:-D" ,  68.1, 0.00))
     ]
+
+
+test6 :: Flows (String, Double, Double) Double
+test6 =
+  bareCapacityCostFlow
+    (\(_, _, x) -> x)
+    (\(_, x, _) -> x)
+    example2
+    SuperSource
+    SuperSink
