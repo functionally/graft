@@ -4,7 +4,7 @@
 }:
 mkDerivation {
   pname = "graft";
-  version = "0.1.1.0";
+  version = "0.1.2.3";
   src = ./.;
   buildDepends = [ cabal-install ghcid hasktags hdevtools hlint pointfree pointful threadscope];
   libraryHaskellDepends = [ base containers heaps raft stringbuilder ];
