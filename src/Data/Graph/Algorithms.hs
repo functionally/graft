@@ -17,10 +17,9 @@ import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
 
-import qualified Data.Heap as H (Entry(..), filter, insert, minimum, null, singleton)
+import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
 import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
-
 
 
 bareCapacityCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
@@ -158,15 +157,15 @@ shortestPathTree' measure halt graph fringe tree
   | H.null fringe = tree
   | otherwise     =
       let
-        H.Entry distance from'@(TaggedItem from (_, context, append)) = H.minimum fringe
+        Just (H.Entry distance (TaggedItem from (_, context, append)), fringe'') = H.uncons fringe
         tree' = append tree
-        fringe' =
+        fringe' = 
           foldr H.insert
-            (H.filter ((/= from') . H.payload) fringe)
+            fringe'' -- (H.filter ((/= from') . H.payload) fringe)
             $ catMaybes
             [
               do
-                (distance', context') <- first (distance <>) <$> measure context edge
+                (distance', context') <- first (distance <>) <$> (measure context edge)
                 return
                   . H.Entry distance'
                   $ TaggedItem to
