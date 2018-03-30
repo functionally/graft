@@ -1,17 +1,27 @@
-{-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE ExplicitForAll      #-}
+{-# LANGUAGE FlexibleContexts    #-}
+{-# LANGUAGE RecordWildCards     #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE ExplicitForAll #-}
+{-# LANGUAGE TypeFamilies        #-}
 
 
-module Data.Graph.Tied
-where
+module Data.Graph.Tied (
+  TiedGraph
+, Vertex(..)
+, Edge(..)
+
+, example1
+
+) where
 
 
+import Control.Arrow ((&&&))
 import Data.Function (on)
 import Data.Function.MapReduce (mapReduce)
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 
+import qualified Data.Graph as G
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
@@ -23,6 +33,26 @@ data TiedGraph v e =
   , edges    :: Set (Edge v e)
   }
     deriving (Eq, Ord)
+
+instance G.Graph (TiedGraph v e) where
+  type VertexLabel (TiedGraph v e) = v
+  type Vertex (TiedGraph v e) = Vertex v e
+  type EdgeLabel (TiedGraph v e) = e
+  type Edge (TiedGraph v e) = Edge v e
+  vertices = S.toList . vertices
+  edges = S.toList . edges
+  vertexLabel = vertexLabel
+  edgesFrom = const edgesFrom
+  edgesTo = const edgesTo
+  edgeLabel = edgeLabel
+  vertexFrom = const vertexFrom
+  vertexTo = const vertexTo
+  fromAdjacencies = tieGraph
+  toAdjacencies = untieGraph
+
+instance (Ord v, Ord e) => Monoid (TiedGraph v e) where
+  mempty = TiedGraph S.empty S.empty
+  mappend = undefined
 
 
 data Vertex v e =
@@ -102,6 +132,22 @@ tieGraph adjacencies =
       vertices = M.foldr S.insert              S.empty vertexTies
     , edges    = M.foldr (S.union . S.map snd) S.empty outgoingEdgeTies
     }
+
+
+untieGraph :: forall v e. (Ord v, Ord e) => TiedGraph v e -> Map v (Set (v, e))
+untieGraph =
+  M.mapKeys
+    vertexLabel
+  . M.fromSet
+    (
+      S.fromList
+        . fmap ((vertexLabel . vertexFrom) &&& edgeLabel)
+        . edgesFrom
+    )
+    . vertices
+
+
+-- TODO: Use GADTs.
 
 
 example1 ::  TiedGraph Char String

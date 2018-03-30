@@ -21,7 +21,8 @@ source-repository head
   location         : https://bitbucket.org/functionally/graft.git
 
 library
-  exposed-modules  : Data.Graph.Algorithms
+  exposed-modules  : Data.Graph
+                     Data.Graph.Algorithms
                      Data.Graph.Examples
                      Data.Graph.IO
                      Data.Graph.Tied
