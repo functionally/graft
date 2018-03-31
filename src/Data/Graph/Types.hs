@@ -154,29 +154,29 @@ type Path v e = [(v, v, e)]
 
 
 
-data Capacity a = Capacity a | NoCapacity
+data Capacity a = Capacity a | Unlimited
   deriving (Eq, Read, Show)
 
 instance Ord a => Ord (Capacity a) where
-  compare NoCapacity   NoCapacity   = EQ
-  compare NoCapacity   _            = GT
-  compare _            NoCapacity   = LT
-  compare (Capacity x) (Capacity y) = compare x y
+  compare Unlimited    Unlimited   = EQ
+  compare Unlimited    _           = LT
+  compare _            Unlimited   = GT
+  compare (Capacity x) (Capacity y) = compare y x
 
 instance Ord a => Monoid (Capacity a) where
-  mempty = NoCapacity
-  mappend NoCapacity   x            = x
-  mappend x            NoCapacity   = x
+  mempty = Unlimited
+  mappend Unlimited   x            = x
+  mappend x            Unlimited   = x
   mappend (Capacity x) (Capacity y) = Capacity $ minimum [x, y]
 
 
 hasCapacity :: Capacity a -> Bool
-hasCapacity NoCapacity = False
+hasCapacity Unlimited = False
 hasCapacity _         = True
 
 
 getCapacity :: Capacity a -> a
-getCapacity NoCapacity   = error "getCapacity: no value."
+getCapacity Unlimited   = error "getCapacity: no value."
 getCapacity (Capacity x) = x
 
 
