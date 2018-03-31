@@ -73,10 +73,8 @@ minimumCostFlow cost capacity set graph context start finish =
     -- Find how much can flow, regardless of cost.
     (path, _) = shortestPath capacity graph context start finish
     Just (flow, _) = measurePath capacity context path
-    Just (cost'', _) = measurePath (cost flow) context path'
     -- Find the shortest path for that amount of flow.
     (path', _) = shortestPath (cost flow) graph context start finish
-    Just (cost', _) = measurePath (cost flow) context path'
     -- Find the amount of flow possible on the shortest path.
     Just (flow', _) = measurePath capacity context path'
     -- Set the flow along the path.
