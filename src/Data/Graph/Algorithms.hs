@@ -161,7 +161,7 @@ shortestPathTree' measure halt graph fringe tree
         tree' = append tree
         fringe' = 
           foldr H.insert
-            fringe'' -- (H.filter ((/= from') . H.payload) fringe)
+            fringe''
             $ catMaybes
             [
               do
@@ -179,6 +179,7 @@ shortestPathTree' measure halt graph fringe tree
             , TaggedItem to undefined `S.notMember` allVertices tree
             ]
       in
-        if halt context from distance
-          then tree'
-          else shortestPathTree' measure halt graph fringe' tree'
+        case (TaggedItem from undefined `S.member` allVertices tree, halt context from distance) of
+          (True, _   ) -> shortestPathTree' measure halt graph fringe'' tree 
+          (_   , True) -> tree'
+          _            -> shortestPathTree' measure halt graph fringe'  tree'
