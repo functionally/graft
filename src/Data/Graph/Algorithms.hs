@@ -74,12 +74,18 @@ minimumCostFlow :: (Show v, Show e, Show cost, Show flow) => (Ord v, Ord e, Ord 
                 -> c
 minimumCostFlow cost capacity set graph context start finish =
   let
-
+    (path, x) = shortestPath capacity graph context start finish
+    Just (flow, _) = measurePath capacity x path
+    (path', x') = shortestPath (cost flow) graph x start finish
+    Just (flow', _) = measurePath capacity x' path'
+    Just (cost', _) = measurePath (cost flow') x' path'
+    
+{-
     next c (_, f, _) = 
       let
-        (p', _) = shortestPath (c f) graph context start finish
-        Just (f', _) = measurePath capacity context p'
-        Just (c', _) = measurePath (cost f') context p'
+        (p', x') = shortestPath (c f) graph context start finish
+        Just (f', _) = measurePath capacity x' p'
+        Just (c', _) = measurePath (cost f') x' p'
       in
         (p', f', c')
 
@@ -89,13 +95,13 @@ minimumCostFlow cost capacity set graph context start finish =
       case (True, 1) of
         (True , n) -> pfcs !! n
         (False, n) -> minimumBy (compare `on` trd3) . tail $ take n pfcs
-
+-}
     Just context' = setFlow set flow' context path'
 
   in
     if null path
       then trace "DONE" context
-      else trace ("PATH\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
+      else trace ("PATH\t" ++ show flow ++ "\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
 
 
 setFlow :: Monoid w
