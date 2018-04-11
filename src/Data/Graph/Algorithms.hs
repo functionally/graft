@@ -12,17 +12,21 @@ module Data.Graph.Algorithms (
 
 import Control.Arrow (first)
 import Control.Monad (foldM, guard)
+import Data.Function (on)
 import Data.Graph.Types (Flows, Graph(..), Measure, MeasureCapacity, MeasureCost, Capacity(..), Path, SetFlow, TaggedGraph, TaggedItem(..), addEdge, getCapacity)
+import Data.List (minimumBy)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
+import Data.Tuple.Util (trd3)
+import Debug.Trace (trace)
 
 import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
 import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
 
 
-bareCapacityCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
+bareCapacityCostFlow :: (Show v, Show e, Show w, Show w') => (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
                     => (e -> w)
                     -> (e -> w')
                     -> Graph v e
@@ -59,7 +63,7 @@ bareCapacityCostFlow cost capacity graph start finish =
         finish
 
 
-minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
+minimumCostFlow :: (Show v, Show e, Show cost, Show flow) => (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 => MeasureCost c e flow cost
                 -> MeasureCapacity c e flow
                 -> SetFlow c e flow
@@ -70,19 +74,28 @@ minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 -> c
 minimumCostFlow cost capacity set graph context start finish =
   let
-    -- Find how much can flow, regardless of cost.
-    (path, _) = shortestPath capacity graph context start finish
-    Just (flow, _) = measurePath capacity context path
-    -- Find the shortest path for that amount of flow.
-    (path', _) = shortestPath (cost flow) graph context start finish
-    -- Find the amount of flow possible on the shortest path.
-    Just (flow', _) = measurePath capacity context path'
-    -- Set the flow along the path.
+
+    next c (_, f, _) = 
+      let
+        (p', _) = shortestPath (c f) graph context start finish
+        Just (f', _) = measurePath capacity context p'
+        Just (c', _) = measurePath (cost f') context p'
+      in
+        (p', f', c')
+
+    pfc@(path, _, _) = next (const capacity) (undefined, undefined, undefined)
+    pfcs = iterate (next cost) pfc
+    (path', flow', cost') =
+      case (True, 1) of
+        (True , n) -> pfcs !! n
+        (False, n) -> minimumBy (compare `on` trd3) . tail $ take n pfcs
+
     Just context' = setFlow set flow' context path'
+
   in
     if null path
-      then context
-      else minimumCostFlow cost capacity set graph context' start finish
+      then trace "DONE" context
+      else trace ("PATH\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
 
 
 setFlow :: Monoid w
