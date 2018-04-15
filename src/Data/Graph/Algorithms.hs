@@ -26,10 +26,7 @@ import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
 import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
 
 
-trace = const id
-
-
-bareCapacityCostFlow :: (Show v, Show e, Show w, Show w') => (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
+bareCapacityCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
                     => (e -> w)
                     -> (e -> w')
                     -> Graph v e
@@ -66,7 +63,7 @@ bareCapacityCostFlow cost capacity graph start finish =
         finish
 
 
-minimumCostFlow :: (Show v, Show e, Show cost, Show flow) => (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
+minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 => MeasureCost c e flow cost
                 -> MeasureCapacity c e flow
                 -> SetFlow c e flow
@@ -84,11 +81,11 @@ minimumCostFlow cost capacity set graph context start finish =
         Just (f', _) = measurePath capacity x' p'
         Just (c', _) = measurePath (cost f') x' p'
       in
-        trace ("LOOP\t" ++ show f' ++ "\t" ++ show c') (p', f', c', x')
+        (p', f', c', x')
 
     pfc@(path, _, _, _) = next (const capacity) (undefined, undefined, undefined, context)
     pfcs = iterate (next cost) pfc
-    (path', flow', cost', _) =
+    (path', flow', _, _) =
       case (True, 1) of
         (True , n) -> pfcs !! n
         (False, n) -> minimumBy (compare `on` trd4) . tail $ take n pfcs
@@ -97,8 +94,8 @@ minimumCostFlow cost capacity set graph context start finish =
 
   in
     if null path
-      then trace "DONE" context
-      else trace ("PATH\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
+      then context
+      else minimumCostFlow cost capacity set graph context' start finish
 
 
 setFlow :: Monoid w
