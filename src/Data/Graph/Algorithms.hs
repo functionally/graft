@@ -18,12 +18,15 @@ import Data.List (minimumBy)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
-import Data.Tuple.Util (trd3)
-import Debug.Trace (trace)
+import Data.Tuple.Util (trd4)
+--import Debug.Trace (trace)
 
 import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
 import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
+
+
+trace = const id
 
 
 bareCapacityCostFlow :: (Show v, Show e, Show w, Show w') => (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
@@ -74,34 +77,28 @@ minimumCostFlow :: (Show v, Show e, Show cost, Show flow) => (Ord v, Ord e, Ord 
                 -> c
 minimumCostFlow cost capacity set graph context start finish =
   let
-    (path, x) = shortestPath capacity graph context start finish
-    Just (flow, _) = measurePath capacity x path
-    (path', x') = shortestPath (cost flow) graph x start finish
-    Just (flow', _) = measurePath capacity x' path'
-    Just (cost', _) = measurePath (cost flow') x' path'
     
-{-
-    next c (_, f, _) = 
+    next c (_, f, _, x) = 
       let
-        (p', x') = shortestPath (c f) graph context start finish
+        (p', x') = shortestPath (c f) graph x start finish
         Just (f', _) = measurePath capacity x' p'
         Just (c', _) = measurePath (cost f') x' p'
       in
-        (p', f', c')
+        trace ("LOOP\t" ++ show f' ++ "\t" ++ show c') (p', f', c', x')
 
-    pfc@(path, _, _) = next (const capacity) (undefined, undefined, undefined)
+    pfc@(path, _, _, _) = next (const capacity) (undefined, undefined, undefined, context)
     pfcs = iterate (next cost) pfc
-    (path', flow', cost') =
+    (path', flow', cost', _) =
       case (True, 1) of
         (True , n) -> pfcs !! n
-        (False, n) -> minimumBy (compare `on` trd3) . tail $ take n pfcs
--}
+        (False, n) -> minimumBy (compare `on` trd4) . tail $ take n pfcs
+
     Just context' = setFlow set flow' context path'
 
   in
     if null path
       then trace "DONE" context
-      else trace ("PATH\t" ++ show flow ++ "\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
+      else trace ("PATH\t" ++ show flow' ++ "\t" ++ show cost' ++ "\t" ++ show path') $ minimumCostFlow cost capacity set graph context' start finish
 
 
 setFlow :: Monoid w
