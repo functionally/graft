@@ -48,13 +48,11 @@ bareCapacityCostFlow cost capacity graph start finish =
           $ context M.! edge > 0
         return (Capacity $ context M.! edge, context)
     set' weight context edge =
-      do
-        let
-          remaining = context M.! edge
-          remaining' = remaining - getCapacity weight
-        guard
-          $ remaining > 0
-        return $ M.insert edge remaining' context
+      let
+        remaining = context M.! edge
+        remaining' = remaining - getCapacity weight
+      in
+        M.insert edge remaining' context
   in
     M.mapWithKey (\edge weight -> capacity edge - weight)
       $ minimumCostFlow cost' capacity' set' graph
@@ -90,7 +88,7 @@ minimumCostFlow cost capacity set graph context start finish =
         (True , n) -> pfcs !! n
         (False, n) -> minimumBy (compare `on` trd4) . tail $ take n pfcs
 
-    Just context' = setFlow set flow' context path'
+    context' = setFlow set flow' context path'
 
   in
     if null path
@@ -103,8 +101,8 @@ setFlow :: Monoid w
         -> w
         -> c
         -> Path v e
-        -> Maybe c
-setFlow measure flow = foldM (\context' (_, _, edge) -> measure flow context' edge)
+        -> c
+setFlow measure flow = foldl (\context' (_, _, edge) -> measure flow context' edge)
 
 
 measurePath :: Monoid w

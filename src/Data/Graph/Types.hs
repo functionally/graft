@@ -147,7 +147,7 @@ type MeasureCost context edge flow cost = flow -> context -> edge -> Maybe (cost
 type MeasureCapacity context edge flow = context -> edge -> Maybe (flow, context)
 
 
-type SetFlow context edge flow = flow -> context -> edge -> Maybe context
+type SetFlow context edge flow = flow -> context -> edge -> context
 
 
 type Path v e = [(v, v, e)]
