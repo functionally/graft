@@ -12,10 +12,14 @@ module Data.Graph.Algorithms (
 
 import Control.Arrow (first)
 import Control.Monad (foldM, guard)
+import Data.Function (on)
 import Data.Graph.Types (Flows, Graph(..), Measure, MeasureCapacity, MeasureCost, Capacity(..), Path, SetFlow, TaggedGraph, TaggedItem(..), addEdge, getCapacity)
+import Data.List (minimumBy)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
+import Data.Tuple.Util (trd4)
+--import Debug.Trace (trace)
 
 import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
@@ -44,13 +48,11 @@ bareCapacityCostFlow cost capacity graph start finish =
           $ context M.! edge > 0
         return (Capacity $ context M.! edge, context)
     set' weight context edge =
-      do
-        let
-          remaining = context M.! edge
-          remaining' = remaining - getCapacity weight
-        guard
-          $ remaining > 0
-        return $ M.insert edge remaining' context
+      let
+        remaining = context M.! edge
+        remaining' = remaining - getCapacity weight
+      in
+        M.insert edge remaining' context
   in
     M.mapWithKey (\edge weight -> capacity edge - weight)
       $ minimumCostFlow cost' capacity' set' graph
@@ -70,15 +72,24 @@ minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 -> c
 minimumCostFlow cost capacity set graph context start finish =
   let
-    -- Find how much can flow, regardless of cost.
-    (path, _) = shortestPath capacity graph context start finish
-    Just (flow, _) = measurePath capacity context path
-    -- Find the shortest path for that amount of flow.
-    (path', _) = shortestPath (cost flow) graph context start finish
-    -- Find the amount of flow possible on the shortest path.
-    Just (flow', _) = measurePath capacity context path'
-    -- Set the flow along the path.
-    Just context' = setFlow set flow' context path'
+    
+    next c (_, f, _, x) = 
+      let
+        (p', x') = shortestPath (c f) graph x start finish
+        Just (f', _) = measurePath capacity x' p'
+        Just (c', _) = measurePath (cost f') x' p'
+      in
+        (p', f', c', x')
+
+    pfc@(path, _, _, _) = next (const capacity) (undefined, undefined, undefined, context)
+    pfcs = iterate (next cost) pfc
+    (path', flow', _, _) =
+      case (True, 1) of
+        (True , n) -> pfcs !! n
+        (False, n) -> minimumBy (compare `on` trd4) . tail $ take n pfcs
+
+    context' = setFlow set flow' context path'
+
   in
     if null path
       then context
@@ -90,8 +101,8 @@ setFlow :: Monoid w
         -> w
         -> c
         -> Path v e
-        -> Maybe c
-setFlow measure flow = foldM (\context' (_, _, edge) -> measure flow context' edge)
+        -> c
+setFlow measure flow = foldl (\context' (_, _, edge) -> measure flow context' edge)
 
 
 measurePath :: Monoid w
@@ -161,7 +172,7 @@ shortestPathTree' measure halt graph fringe tree
         tree' = append tree
         fringe' = 
           foldr H.insert
-            fringe'' -- (H.filter ((/= from') . H.payload) fringe)
+            fringe''
             $ catMaybes
             [
               do
@@ -179,6 +190,7 @@ shortestPathTree' measure halt graph fringe tree
             , TaggedItem to undefined `S.notMember` allVertices tree
             ]
       in
-        if halt context from distance
-          then tree'
-          else shortestPathTree' measure halt graph fringe' tree'
+        case (TaggedItem from undefined `S.member` allVertices tree, halt context from distance) of
+          (True, _   ) -> shortestPathTree' measure halt graph fringe'' tree 
+          (_   , True) -> tree'
+          _            -> shortestPathTree' measure halt graph fringe'  tree'
