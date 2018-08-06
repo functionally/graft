@@ -28,6 +28,7 @@ example1 =
 test1 :: a -> TaggedGraph (Vertex String) (String, Double, Double) (Sum Double, a)
 test1 c0 =
   shortestPathTree
+    (> 0)
     (\c (_, x, _) -> Just (Sum x, c))
     (\_ v _ -> v == SuperSink)
     example1
@@ -53,6 +54,7 @@ test2 =
 test3 :: (Path (Vertex String) (String, Double, Double), Int)
 test3 =
   shortestPath
+    (> 0)
     (\c (_, x, _) -> Just (Sum x, c + 1))
     example1
     0
