@@ -19,20 +19,25 @@ import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
 import Data.Heap (Heap)
 import Data.Tuple.Util (trd4)
---import Debug.Trace (trace)
 
 import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map.Strict as M ((!), empty, insert, lookup, mapWithKey)
 import qualified Data.Set as S (findMin, lookupLE, member, notMember, toList)
+import qualified Debug.Trace as T (trace)
 
 
-bareCapacityCostFlow :: (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
-                    => (e -> w)
-                    -> (e -> w')
-                    -> Graph v e
-                    -> v
-                    -> v
-                    -> Flows e w'
+trace :: String -> a -> a
+trace = if True then T.trace else const id
+
+
+bareCapacityCostFlow :: (Show v, Show e, Show w, Show w')
+                     => (Ord v, Ord e, Num w, Ord w, Num w', Ord w')
+                     => (e -> w)
+                     -> (e -> w')
+                     -> Graph v e
+                     -> v
+                     -> v
+                     -> Flows e w'
 bareCapacityCostFlow cost capacity graph start finish =
   let
     cost' _ context edge =
@@ -61,7 +66,8 @@ bareCapacityCostFlow cost capacity graph start finish =
         finish
 
 
-minimumCostFlow :: (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
+minimumCostFlow :: (Show v, Show e, Show cost, Show flow)
+                => (Ord v, Ord e, Ord cost, Monoid cost, Ord flow, Monoid flow)
                 => Valid cost
                 -> MeasureCost c e flow cost
                 -> Valid flow
@@ -77,15 +83,15 @@ minimumCostFlow validateCost cost validateCapacity capacity set graph context st
     
     next v c (_, f, _, x) = 
       let
-        (p', x') = shortestPath v (c f) graph x start finish
-        Just (f', _) = measurePath capacity x' p'
-        Just (c', _) = measurePath (cost f') x' p'
+        (p', x')     = (\z -> trace ("GRAFT\tminimumCostFlow\tSHORTEST\t" ++ show (fst     z)) z) $ shortestPath v (c f) graph x start finish
+        Just (f', _) = (\z -> trace ("GRAFT\tminimumCostFlow\tFLOW\t"     ++ show (fst <$> z)) z) $ measurePath capacity x' p'
+        Just (c', _) = (\z -> trace ("GRAFT\tminimumCostFlow\tCOST\t"     ++ show (fst <$> z)) z) $ measurePath (cost f') x' p'
       in
         (p', f', c', x')
 
-    pfc@(path, _, _, _) = next validateCapacity (const capacity) (undefined, undefined, undefined, context)
+    pfc@(path, _, _, _) = trace "GRAFT\tminimumCostFlow\tNEXT" $ next validateCapacity (const capacity) (undefined, undefined, undefined, trace "GRAFT\tminimumCostFlow\tFIRST" context)
     pfcs = iterate (next validateCost cost) pfc
-    (path', flow', _, _) =
+    (path', flow', _, _) = (\z@(z0, z1, _, _) -> trace ("GRAFT\tminimumCostFlow\tFLOWPATH\t" ++ show z1 ++ "\t" ++ show z0) z) $
       case (True, 1) of
         (True , n) -> pfcs !! n
         (False, n) -> minimumBy (compare `on` trd4) . tail $ take n pfcs
@@ -118,7 +124,8 @@ measurePath measure context =
     (mempty, context)
 
 
-shortestPath :: (Monoid w, Ord w, Ord v, Ord e)
+shortestPath :: (Show w, Show v, Show e)
+             => (Monoid w, Ord w, Ord v, Ord e)
              => Valid w
              -> Measure c e w
              -> Graph v e
@@ -145,7 +152,8 @@ shortestPath validate measure graph context start finish =
       else ([], context)
 
 
-shortestPathTree :: (Monoid w, Ord w, Ord v, Ord e)
+shortestPathTree :: (Show w, Show v, Show e)
+                 => (Monoid w, Ord w, Ord v, Ord e)
                  => Valid w
                  -> Measure c e w
                  -> (c -> v -> w -> Bool)
@@ -161,7 +169,8 @@ shortestPathTree validate measure halt graph context start =
     shortestPathTree' validate measure halt graph fringe tree
 
 
-shortestPathTree' :: (Monoid w, Ord w, Ord v, Ord e)
+shortestPathTree' :: (Show w, Show v, Show e)
+                  => (Monoid w, Ord w, Ord v, Ord e)
                   => Valid w
                   -> Measure c e w
                   -> (c -> v -> w -> Bool)
@@ -182,7 +191,8 @@ shortestPathTree' validate measure halt graph fringe tree
             [
               do
                 (distance', context') <- first (distance <>) <$> measure context edge
-                guard
+                trace ("GRAFT\tshortestPathTree'\t" ++ show edge ++ "\t" ++ show to ++ "\t" ++ show distance')
+                  . guard
                   $ validate distance' 
                 return
                   . H.Entry distance'
