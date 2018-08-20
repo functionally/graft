@@ -5,7 +5,7 @@
 {-# LANGUAGE TypeFamilies        #-}
 
 
-module Data.Graph.Tied (
+module Data.Graph.Legacy.Tied (
   TiedGraph
 , Vertex(..)
 , Edge(..)

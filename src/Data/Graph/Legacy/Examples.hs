@@ -1,9 +1,9 @@
-module Data.Graph.Examples
+module Data.Graph.Legacy.Examples
 where
 
 
-import Data.Graph.Algorithms
-import Data.Graph.Types
+import Data.Graph.Legacy.Algorithms
+import Data.Graph.Legacy.Types
 import Data.Monoid (Sum(..))
 
 

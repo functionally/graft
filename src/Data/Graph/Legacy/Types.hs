@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 
-module Data.Graph.Types (
+module Data.Graph.Legacy.Types (
   Graph(..)
 , bimap
 , mapVertices

@@ -2,12 +2,12 @@
 {-# LANGUAGe RecordWildCards   #-}
 
 
-module Data.Graph.IO (
+module Data.Graph.Legacy.IO (
   toGraphviz
 ) where
 
 
-import Data.Graph.Types (Graph(..))
+import Data.Graph.Legacy.Types (Graph(..))
 import Data.String.Builder (build, literal)
 
 import qualified Data.Map.Strict as M (toList)

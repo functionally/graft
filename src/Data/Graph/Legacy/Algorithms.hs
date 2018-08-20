@@ -1,7 +1,7 @@
 {-# LANGUAGE RecordWildCards #-}
 
 
-module Data.Graph.Algorithms (
+module Data.Graph.Legacy.Algorithms (
   bareCapacityCostFlow
 , minimumCostFlow
 , shortestPath
@@ -13,7 +13,7 @@ module Data.Graph.Algorithms (
 import Control.Arrow (first)
 import Control.Monad (foldM, guard)
 import Data.Function (on)
-import Data.Graph.Types (Flows, Graph(..), Measure, MeasureCapacity, MeasureCost, Capacity(..), Path, SetFlow, TaggedGraph, TaggedItem(..), Valid, addEdge, getCapacity)
+import Data.Graph.Legacy.Types (Flows, Graph(..), Measure, MeasureCapacity, MeasureCost, Capacity(..), Path, SetFlow, TaggedGraph, TaggedItem(..), Valid, addEdge, getCapacity)
 import Data.List (minimumBy)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid (Sum(..), (<>))
