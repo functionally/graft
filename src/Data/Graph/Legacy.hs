@@ -2,7 +2,7 @@
 {-# LANGUAGE TypeFamilies     #-}
 
 
-module Data.Graph (
+module Data.Graph.Legacy (
   Graph(..)
 , Path
 , LabeledPayload(..)

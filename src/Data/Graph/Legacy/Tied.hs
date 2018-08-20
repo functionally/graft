@@ -21,7 +21,7 @@ import Data.Function.MapReduce (mapReduce)
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 
-import qualified Data.Graph as G
+import qualified Data.Graph.Legacy as G
 import qualified Data.Map.Strict as M
 import qualified Data.Set as S
 
