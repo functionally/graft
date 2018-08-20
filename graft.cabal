@@ -1,5 +1,5 @@
 name               : graft
-version            : 0.2.0.0
+version            : 0.2.0.1
 synopsis           : Graph algorithms
 description        : Graph algorithms
 
@@ -21,12 +21,17 @@ source-repository head
   location         : https://bitbucket.org/functionally/graft.git
 
 library
-  exposed-modules  : Data.Graph
+  exposed-modules  : Data.Graph.Legacy
                      Data.Graph.Legacy.Algorithms
                      Data.Graph.Legacy.Examples
                      Data.Graph.Legacy.IO
                      Data.Graph.Legacy.Tied
                      Data.Graph.Legacy.Types
+                     Data.Graph.Types
+                     Data.Graph.Types.Adjacency
+                     Data.Graph.Types.MapGraph
+                     Data.Graph.Types.TiedGraph
+                     Data.Graph.Types.Util
   hs-source-dirs   : src
   build-depends    : base         >= 4 && < 5
                    , containers
