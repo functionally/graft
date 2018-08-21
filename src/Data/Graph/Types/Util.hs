@@ -5,15 +5,17 @@ module Data.Graph.Types.Util (
 , HyperEdge(..)
 , Halt
 , HaltC
-, HaltM
 , Measure
 , MeasureC
 , MeasureM
+, SetFlowC
+, Flows
 ) where
 
 
 import Control.Monad.State (State)
 import Data.Graph.Types.MapGraph (MapGraph)
+import Data.Map.Strict (Map)
 
 
 data Tagged a b =
@@ -53,9 +55,6 @@ type Halt vertex weight = vertex -> weight -> Bool
 type HaltC context vertex weight = context -> vertex -> weight -> Bool
 
 
-type HaltM context vertex weight = vertex -> weight -> State context Bool
-
-
 type Measure edge weight = edge -> Maybe weight
 
 
@@ -63,3 +62,9 @@ type MeasureC context edge weight = context -> edge -> Maybe (weight, context)
 
 
 type MeasureM context edge weight = edge -> State context (Maybe weight)
+
+
+type SetFlowC context edge flow = context -> edge -> flow -> context
+
+
+type Flows e w = Map e w

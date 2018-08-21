@@ -11,6 +11,8 @@ let
                 haskellPackagesNew.callPackage ./default.nix { };
               heaps =
                 haskellPackagesNew.callPackage ./heaps.nix { };
+#             extended-reals =
+#               pkgs.haskell.lib.dontCheck haskellPackagesOld.extended-reals;
             };
           };
         };
