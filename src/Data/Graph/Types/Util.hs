@@ -1,10 +1,19 @@
 module Data.Graph.Types.Util (
   Tagged(..)
+, TaggedGraph
 , HyperVertex(..)
 , HyperEdge(..)
 , Halt
+, HaltC
+, HaltM
 , Measure
+, MeasureC
+, MeasureM
 ) where
+
+
+import Control.Monad.State (State)
+import Data.Graph.Types.MapGraph (MapGraph)
 
 
 data Tagged a b =
@@ -22,6 +31,9 @@ instance Ord a => Ord (Tagged a b) where
   Tagged x _ `compare` Tagged y _ = x `compare` y
 
 
+type TaggedGraph v e t = MapGraph (Tagged v t) e
+
+
 data HyperVertex a =
     HyperSource
   | HyperSink
@@ -35,7 +47,19 @@ data HyperEdge a =
     deriving (Eq, Ord, Read, Show)
 
 
-type Halt context vertex weight = context -> vertex -> weight -> Bool
+type Halt vertex weight = vertex -> weight -> Bool
 
 
-type Measure context edge weight = context -> edge -> Maybe (weight, context)
+type HaltC context vertex weight = context -> vertex -> weight -> Bool
+
+
+type HaltM context vertex weight = vertex -> weight -> State context Bool
+
+
+type Measure edge weight = edge -> Maybe weight
+
+
+type MeasureC context edge weight = context -> edge -> Maybe (weight, context)
+
+
+type MeasureM context edge weight = edge -> State context (Maybe weight)

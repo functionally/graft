@@ -28,6 +28,8 @@ library
                      Data.Graph.Legacy.Tied
                      Data.Graph.Legacy.Types
                      Data.Graph.ShortestPath
+                     Data.Graph.ShortestPath.Contextual
+                     Data.Graph.ShortestPath.Monadic
                      Data.Graph.Types
                      Data.Graph.Types.Adjacency
                      Data.Graph.Types.MapGraph
@@ -37,6 +39,7 @@ library
   build-depends    : base         >= 4 && < 5
                    , containers
                    , heaps
+                   , mtl
                    , raft
                    , stringbuilder
   exposed          : True

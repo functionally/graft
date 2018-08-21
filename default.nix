@@ -1,5 +1,5 @@
 {
-  mkDerivation, base, containers, heaps, raft, stringbuilder, stdenv,
+  mkDerivation, base, containers, heaps, mtl, raft, stringbuilder, stdenv,
   cabal-install, ghcid, hasktags, hdevtools, hlint, pointfree, pointful, threadscope
 }:
 mkDerivation {
@@ -7,7 +7,7 @@ mkDerivation {
   version = "0.2.0.1";
   src = ./.;
   buildDepends = [ cabal-install ghcid hasktags hdevtools hlint pointfree pointful threadscope];
-  libraryHaskellDepends = [ base containers heaps raft stringbuilder ];
+  libraryHaskellDepends = [ base containers heaps mtl raft stringbuilder ];
   homepage = "https://bitbucket.org/functionally/graft";
   description = "Graph algorithms";
   license = stdenv.lib.licenses.mit;
