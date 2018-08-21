@@ -27,6 +27,7 @@ library
                      Data.Graph.Legacy.IO
                      Data.Graph.Legacy.Tied
                      Data.Graph.Legacy.Types
+                     Data.Graph.ShortestPath
                      Data.Graph.Types
                      Data.Graph.Types.Adjacency
                      Data.Graph.Types.MapGraph

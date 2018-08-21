@@ -2,6 +2,8 @@ module Data.Graph.Types.Util (
   Tagged(..)
 , HyperVertex(..)
 , HyperEdge(..)
+, Halt
+, Measure
 ) where
 
 
@@ -31,3 +33,9 @@ data HyperEdge a =
     ForwardEdge a
   | ReversedEdge a
     deriving (Eq, Ord, Read, Show)
+
+
+type Halt context vertex weight = context -> vertex -> weight -> Bool
+
+
+type Measure context edge weight = context -> edge -> Maybe (weight, context)
