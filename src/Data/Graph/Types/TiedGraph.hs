@@ -21,7 +21,11 @@ import Data.Map.Strict (Map)
 import Data.Set (Set)
 
 import qualified Data.Map.Strict as M ((!), fromList, fromSet, mapKeys, mapWithKey, toList, unionWith)
-import qualified Data.Set as S (fromList, insert, map, toList)
+import qualified Data.Set as S (filter, fromList, insert, map, minView, toList)
+
+
+lookupMin :: Set a -> Maybe a
+lookupMin = fmap fst . S.minView
 
 
 data TiedGraph v e =
@@ -44,15 +48,17 @@ instance Graph (TiedGraph v e) where
   type Edge (TiedGraph v e) = TiedEdge v e
   type Edges (TiedGraph v e) = []
   vertices = S.toList . tiedVertices
-  edges = S.toList . tiedEdges
-  vertexLabel = tiedVertexLabel
+  vertexLabel = const tiedVertexLabel
   vertexLabels = fmap tiedVertexLabel . vertices
-  edgesFrom = const tiedEdgesFrom
-  edgesTo = const tiedEdgesTo
-  edgeLabel = tiedEdgeLabel
-  edgeLabels = fmap tiedEdgeLabel . edges
+  vertexLabeled TiedGraph{..} label = lookupMin $ S.filter ((== label) . tiedVertexLabel) tiedVertices
   vertexFrom = const tiedVertexFrom
   vertexTo = const tiedVertexTo
+  edges = S.toList . tiedEdges
+  edgeLabel = const tiedEdgeLabel
+  edgeLabels = fmap tiedEdgeLabel . edges
+  edgeLabeled TiedGraph{..} label = lookupMin $ S.filter ((== label) . tiedEdgeLabel) tiedEdges
+  edgesFrom = const tiedEdgesFrom
+  edgesTo = const tiedEdgesTo
   fromAdjacencies = tieGraph
   toAdjacencies = untieGraph
 

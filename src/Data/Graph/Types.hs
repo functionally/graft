@@ -12,6 +12,8 @@ module Data.Graph.Types (
 ) where
 
 
+import Data.Foldable (toList)
+import Data.List (find)
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 
@@ -36,28 +38,19 @@ class (Foldable (Vertices graph), Foldable (Edges graph)) => Graph graph where
   vertices :: graph
            -> Vertices graph (Vertex graph)
 
-  edges :: graph
-        -> Edges graph (Edge graph)
-
-  vertexLabel :: Vertex graph
+  vertexLabel :: graph
+              -> Vertex graph
               -> VertexLabel graph
 
   vertexLabels :: graph
                -> [VertexLabel graph]
+  vertexLabels graph = vertexLabel graph <$> toList (vertices graph)
 
-  edgesFrom :: graph
-            -> Vertex graph
-            -> Edges graph (Edge graph)
-
-  edgesTo :: graph
-          -> Vertex graph
-          -> Edges graph (Edge graph)
-
-  edgeLabel :: Edge graph
-            -> EdgeLabel graph
-
-  edgeLabels :: graph
-             -> [EdgeLabel graph]
+  vertexLabeled :: Eq (VertexLabel graph)
+                => graph
+                -> VertexLabel graph
+                -> Maybe (Vertex graph)
+  vertexLabeled graph label = find ((== label) . vertexLabel graph) $ vertices graph
 
   vertexFrom :: graph
              -> Edge graph
@@ -66,6 +59,31 @@ class (Foldable (Vertices graph), Foldable (Edges graph)) => Graph graph where
   vertexTo :: graph
            -> Edge graph
            -> Vertex graph
+
+  edges :: graph
+        -> Edges graph (Edge graph)
+
+  edgeLabel :: graph
+            -> Edge graph
+            -> EdgeLabel graph
+
+  edgeLabels :: graph
+             -> [EdgeLabel graph]
+  edgeLabels graph = edgeLabel graph <$> toList (edges graph)
+
+  edgeLabeled :: Eq (EdgeLabel graph)
+              => graph
+              -> EdgeLabel graph
+              -> Maybe (Edge graph)
+  edgeLabeled graph label = find ((== label) . edgeLabel graph) $ edges graph
+
+  edgesFrom :: graph
+            -> Vertex graph
+            -> Edges graph (Edge graph)
+
+  edgesTo :: graph
+          -> Vertex graph
+          -> Edges graph (Edge graph)
 
   fromAdjacencies :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
                   => Adjacencies (VertexLabel graph) (EdgeLabel graph)

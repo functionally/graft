@@ -33,15 +33,15 @@ instance (Ord v, Ord e) => Graph (AdjacencyGraph v e) where
   type Edge (AdjacencyGraph v e) = e
   type Edges (AdjacencyGraph v e) = Set
   vertices = M.keysSet . unadjacencies
-  edges = foldMap (S.map snd) . unadjacencies
-  vertexLabel = id
+  vertexLabel = const id
   vertexLabels = M.keys . unadjacencies
-  edgesFrom = (S.map snd .) . (M.!) . unadjacencies
-  edgesTo graph to = foldMap (S.map snd . S.filter ((== to) . fst)) $ unadjacencies graph
-  edgeLabel = id
-  edgeLabels = foldMap (fmap snd . S.toList) . unadjacencies
   vertexFrom = findVertex const
   vertexTo = findVertex $ const id
+  edges = foldMap (S.map snd) . unadjacencies
+  edgeLabel = const id
+  edgeLabels = foldMap (fmap snd . S.toList) . unadjacencies
+  edgesFrom = (S.map snd .) . (M.!) . unadjacencies
+  edgesTo graph to = foldMap (S.map snd . S.filter ((== to) . fst)) $ unadjacencies graph
   fromAdjacencies = Adjacencies
   toAdjacencies = unadjacencies
 
