@@ -67,8 +67,8 @@ instance (Ord v, Ord e) => Graph (MapGraph v e) where
   edgeLabels = fmap snd . S.toList . allEdges
   edgesFrom MapGraph{..} = (outgoingEdges M.!)
   edgesTo MapGraph{..} = (incomingEdges M.!)
-  fromAdjacencies = M.foldMapWithKey $ \from -> foldl (\graph (to, label) -> addEdge' graph ((from, to), label)) mempty
-  toAdjacencies MapGraph{..} = M.map (S.map $ first fst) outgoingEdges
+  fromAdjacencyMatrix = M.foldMapWithKey $ \from -> foldl (\graph (to, label) -> addEdge' graph ((from, to), label)) mempty
+  toAdjacencyMatrix MapGraph{..} = M.map (S.map $ first fst) outgoingEdges
 
 instance (Ord v, Ord e) => MutableGraph (MapGraph v e) where
   addVertex vertex MapGraph{..} =

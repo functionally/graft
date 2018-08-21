@@ -8,7 +8,7 @@ module Data.Graph.Types.Adjacency (
 
 
 import Data.Function (on)
-import Data.Graph.Types (Adjacencies, Graph(..), MutableGraph(..))
+import Data.Graph.Types (AdjacencyMatrix, Graph(..), MutableGraph(..))
 import Data.Maybe (catMaybes)
 import Data.Set (Set)
 
@@ -16,7 +16,7 @@ import qualified Data.Map.Strict as M ((!), adjust, delete, foldMapWithKey, inse
 import qualified Data.Set as S (delete, filter, map, singleton, toList)
 
 
-newtype AdjacencyGraph v e = Adjacencies {unadjacencies :: Adjacencies v e}
+newtype AdjacencyGraph v e = Adjacencies {unadjacencies :: AdjacencyMatrix v e}
   deriving (Eq, Ord, Read, Show)
 
 instance (Ord v, Ord e) => Monoid (AdjacencyGraph v e) where
@@ -42,8 +42,8 @@ instance (Ord v, Ord e) => Graph (AdjacencyGraph v e) where
   edgeLabels = foldMap (fmap snd . S.toList) . unadjacencies
   edgesFrom = (S.map snd .) . (M.!) . unadjacencies
   edgesTo graph to = foldMap (S.map snd . S.filter ((== to) . fst)) $ unadjacencies graph
-  fromAdjacencies = Adjacencies
-  toAdjacencies = unadjacencies
+  fromAdjacencyMatrix = Adjacencies
+  toAdjacencyMatrix = unadjacencies
 
 instance (Ord v, Ord e) => MutableGraph (AdjacencyGraph v e) where
   addVertex vertex =

@@ -16,7 +16,7 @@ module Data.Graph.Types.TiedGraph (
 import Control.Arrow ((&&&))
 import Data.Function (on)
 import Data.Function.MapReduce (mapReduce)
-import Data.Graph.Types (Adjacencies, Graph(..))
+import Data.Graph.Types (AdjacencyMatrix, Graph(..))
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 
@@ -59,8 +59,8 @@ instance Graph (TiedGraph v e) where
   edgeLabeled TiedGraph{..} label = lookupMin $ S.filter ((== label) . tiedEdgeLabel) tiedEdges
   edgesFrom = const tiedEdgesFrom
   edgesTo = const tiedEdgesTo
-  fromAdjacencies = tieGraph
-  toAdjacencies = untieGraph
+  fromAdjacencyMatrix = tieGraph
+  toAdjacencyMatrix = untieGraph
 
 
 data TiedVertex v e =
@@ -93,7 +93,7 @@ instance Ord e => Ord (TiedEdge v e) where
   compare = compare `on` tiedEdgeLabel
 
 
-tieGraph :: forall v e. (Ord v, Ord e) => Adjacencies v e -> TiedGraph v e
+tieGraph :: forall v e. (Ord v, Ord e) => AdjacencyMatrix v e -> TiedGraph v e
 tieGraph adjacencies =
   let
     vertexTies :: Map v (TiedVertex v e)

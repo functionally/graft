@@ -6,9 +6,9 @@
 module Data.Graph.Types (
   Graph(..)
 , MutableGraph(..)
-, Adjacencies
+, AdjacencyMatrix
+, EdgeList
 , Path
-, makeGraph
 ) where
 
 
@@ -85,13 +85,36 @@ class (Foldable (Vertices graph), Foldable (Edges graph)) => Graph graph where
           -> Vertex graph
           -> Edges graph (Edge graph)
 
-  fromAdjacencies :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
-                  => Adjacencies (VertexLabel graph) (EdgeLabel graph)
+  fromAdjacencyMatrix :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
+                  => AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
                   -> graph
 
-  toAdjacencies :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
+  toAdjacencyMatrix :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
                 => graph
-                -> Adjacencies (VertexLabel graph) (EdgeLabel graph)
+                -> AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
+
+  fromEdgeList :: (Ord (VertexLabel graph), Ord (EdgeLabel graph), Graph graph)
+               => [VertexLabel graph]
+               -> EdgeList (VertexLabel graph) (EdgeLabel graph)
+               -> graph
+  fromEdgeList vs es =
+    fromAdjacencyMatrix
+      .  M.fromListWith mappend
+      $  fmap (, mempty) vs
+      ++ fmap (\(from, to, edge) -> (from, S.singleton (to, edge))) es
+
+  toEdgeList :: graph
+             -> EdgeList (VertexLabel graph) (EdgeLabel graph)
+  toEdgeList graph =
+    [
+      (
+        vertexLabel graph $ vertexFrom graph edge
+      , vertexLabel graph $ vertexTo   graph edge
+      , edgeLabel graph edge
+      )
+    |
+      edge <- toList $ edges graph
+    ]
 
 
 class Graph graph => MutableGraph graph where
@@ -105,15 +128,10 @@ class Graph graph => MutableGraph graph where
   removeEdge :: VertexLabel graph -> VertexLabel graph -> EdgeLabel graph -> graph -> graph
 
 
-makeGraph :: (Ord (VertexLabel graph), Ord (EdgeLabel graph), Graph graph) => [VertexLabel graph] -> [(VertexLabel graph, VertexLabel graph, EdgeLabel graph)] -> graph
-makeGraph vs es =
-  fromAdjacencies
-    .  M.fromListWith mappend
-    $  fmap (, mempty) vs
-    ++ fmap (\(from, to, edge) -> (from, S.singleton (to, edge))) es
+type AdjacencyMatrix v e = Map v (Set (v, e))
 
 
-type Adjacencies v e = Map v (Set (v, e))
+type EdgeList v e = [(v, v, e)]
 
 
-type Path g = [(VertexLabel g, VertexLabel g, EdgeLabel g)]
+type Path v e = [(v, v, e)]

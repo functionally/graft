@@ -5,11 +5,13 @@
 module Data.Graph.ShortestPath (
   shortestPathTree
 , shortestPath
+, measurePath
 , TaggedGraph
 ) where
 
 
 import Control.Arrow (first)
+import Control.Monad (foldM)
 import Data.Foldable (toList)
 import Data.Graph.Types (Graph(..), MutableGraph(..), Path)
 import Data.Graph.Types.MapGraph (MapGraph)
@@ -25,6 +27,17 @@ import qualified Data.Set as S (findMin, lookupLE, member, notMember)
 type TaggedGraph v e t = MapGraph (Tagged v t) e
 
 
+measurePath :: (Monoid w)
+            => Measure c e w
+            -> c
+            -> Path v e
+            -> Maybe (w, c)
+measurePath measure context =
+  foldM
+    (\(weight', context') (_, _, edge) -> first (weight' <>) <$> measure context' edge)
+    (mempty, context)
+
+
 shortestPath :: (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
              => Measure c e w
@@ -32,14 +45,14 @@ shortestPath :: (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              -> c
              -> v
              -> v
-             -> (Path (MapGraph v e), c)
+             -> (Path v e, c)
 shortestPath measure graph context start finish =
   let
     tree = shortestPathTree measure (const $ const . (== finish)) graph context start
     f [] = []
     f path@((to, _, _) : _) =
       let
-        ((_, Tagged from _), edge) = S.findMin $ edgesTo tree (Tagged to undefined)
+        ((_, Tagged from _), edge) = S.findMin . edgesTo tree $ Tagged to undefined
         path' = (from, to, edge) : path
       in
         if from == start
