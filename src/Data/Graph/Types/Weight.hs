@@ -5,17 +5,16 @@ module Data.Graph.Types.Weight (
 , MeasureC
 , MeasureM
 , SetFlowC
+, GetFlowC
 , Flows
 , Flow(..)
-, Capacity(..)
-, hasCapacity
-, getCapacity
 ) where
 
 
 import Control.Monad.State (State)
 import Data.Default.Util (inf)
 import Data.Map.Strict (Map)
+import Data.Monoid.Zero (MonoidZero(..))
 import Numeric.NonNegative.Class (C(..), splitDefault)
 
 
@@ -34,47 +33,27 @@ type MeasureC context edge weight = context -> edge -> Maybe (weight, context)
 type MeasureM context edge weight = edge -> State context (Maybe weight)
 
 
-type SetFlowC context edge flow = flow -> context -> edge -> context
+type GetFlowC context edge flow = context -> edge -> ((flow, flow), context)
+
+
+type SetFlowC context edge flow = Bool -> flow -> context -> edge -> context
 
 
 type Flows e w = Map e w
 
 
-newtype Flow a = Flow {unflow :: a}
+newtype Flow a = Flow {unFlow :: a}
   deriving (Eq, Read, Show)
 
 instance Ord a => Ord (Flow a) where
-  compare = flip compare
+  Flow x `compare` Flow y = y `compare` x
 
 instance RealFloat a => Monoid (Flow a) where
   mempty = Flow inf
   Flow x `mappend` Flow y = Flow $ minimum [x, y]
 
+instance (RealFloat a, Num a) => MonoidZero (Flow a) where
+  zero = Flow 0
+
 instance (RealFloat a, Num a) => C (Flow a) where
-  split = splitDefault unflow Flow
-
-
-data Capacity a = Capacity a | Unlimited
-  deriving (Eq, Read, Show)
-
-instance Ord a => Ord (Capacity a) where
-  compare Unlimited    Unlimited   = EQ
-  compare Unlimited    _           = LT
-  compare _            Unlimited   = GT
-  compare (Capacity x) (Capacity y) = compare y x
-
-instance Ord a => Monoid (Capacity a) where
-  mempty = Unlimited
-  mappend Unlimited   x            = x
-  mappend x            Unlimited   = x
-  mappend (Capacity x) (Capacity y) = Capacity $ minimum [x, y]
-
-
-hasCapacity :: Capacity a -> Bool
-hasCapacity Unlimited = False
-hasCapacity _         = True
-
-
-getCapacity :: Capacity a -> a
-getCapacity Unlimited   = error "getCapacity: no value."
-getCapacity (Capacity x) = x
+  split = splitDefault unFlow Flow

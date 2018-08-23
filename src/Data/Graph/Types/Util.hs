@@ -35,6 +35,6 @@ data HyperVertex a =
 
 
 data HyperEdge a =
-    ForwardEdge {self :: a, opposite :: HyperEdge a}
-  | ReverseEdge {self :: a, opposite :: HyperEdge a}
+    ForwardEdge a
+  | ReverseEdge a
     deriving (Eq, Ord, Read, Show)

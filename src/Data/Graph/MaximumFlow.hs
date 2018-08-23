@@ -6,12 +6,11 @@ module Data.Graph.MaximumFlow (
 ) where
 
 
-import Control.Monad (ap, guard)
 import Data.Graph.Types (Graph(..))
-import Data.Graph.Types.Weight (Capacity(..), Flows, Measure, getCapacity)
+import Data.Graph.Types.Weight (Flow(..), Flows, Measure)
 
-import qualified Data.Graph.MaximumFlow.Contextual as C (maximumFlow')
-import qualified Data.Map.Strict as M ((!), empty, insert, mapWithKey)
+import qualified Data.Graph.MaximumFlow.Contextual as C (maximumFlow)
+import qualified Data.Map.Strict as M ((!), empty, insert)
 
 
 maximumFlow :: (Show v, Show e, Show w)
@@ -25,22 +24,33 @@ maximumFlow :: (Show v, Show e, Show w)
 maximumFlow measure graph start finish =
   let
     measure' context edge =
-      do
-        guard
-          $ context M.! edge > 0
-        return (Capacity $ context M.! edge, context)
-    set' weight context edge =
       let
-        remaining = context M.! edge
-        remaining' = remaining - getCapacity weight
+         flow = context M.! edge
       in
-        M.insert edge remaining' context
+        (
+          (
+            Flow $ measure edge - flow
+          , Flow flow
+          )
+        , context
+        )
+    set' forward flow context edge =
+      let
+        previous = context M.! edge
+      in
+        M.insert
+          edge
+          (
+            if forward
+              then previous + unFlow flow
+              else previous - unFlow flow
+          )
+          context
   in
-    M.mapWithKey (\edge weight -> measure edge - weight)
-      $ C.maximumFlow'
-        measure'
-        set'
-        graph
-        (foldr (ap M.insert measure) M.empty $ edgeLabels graph)
-        start
-        finish
+    C.maximumFlow
+      measure'
+      set'
+      graph
+      (foldr (`M.insert` 0) M.empty $ edgeLabels graph)
+      start
+      finish
