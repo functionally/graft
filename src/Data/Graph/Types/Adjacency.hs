@@ -17,7 +17,22 @@ import qualified Data.Set as S (delete, filter, map, singleton, toList)
 
 
 newtype AdjacencyGraph v e = Adjacencies {unadjacencies :: AdjacencyMatrix v e}
-  deriving (Eq, Ord, Read, Show)
+  deriving (Eq, Ord)
+
+instance (Ord v, Read v, Ord e, Read e) => Read (AdjacencyGraph v e) where
+  readsPrec p =
+    readParen (p > 10)
+      $ \ r -> do
+        ("fromAdjacencyMatrix", s) <- lex r
+        (xs,t) <- reads s
+        return (fromAdjacencyMatrix xs,t)
+
+instance (Ord v, Show v, Ord e, Show e) => Show (AdjacencyGraph v e) where
+  showsPrec d m =
+    showParen (d > 10)
+      $ showString "fromAdjacencyMatrix ("
+      . shows (toAdjacencyMatrix m)
+      . showString ")"
 
 instance (Ord v, Ord e) => Monoid (AdjacencyGraph v e) where
   mempty = Adjacencies mempty

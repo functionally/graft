@@ -12,7 +12,8 @@ import Control.Arrow (first)
 import Control.Monad (foldM)
 import Data.Foldable (toList)
 import Data.Graph.Types (Graph(..), MutableGraph(..), Path)
-import Data.Graph.Types.Util (HaltC, MeasureC, Tagged(..), TaggedGraph)
+import Data.Graph.Types.Util (Tagged(..), TaggedGraph)
+import Data.Graph.Types.Weight (HaltC, MeasureC)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid ((<>))
 import Data.Heap (Heap)
@@ -32,21 +33,22 @@ measurePath measure context =
     (mempty, context)
 
 
-shortestPath :: (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
+shortestPath :: (Show v, Show e, Show w)
+             => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
              => MeasureC c e w
              -> g
              -> c
              -> v
              -> v
-             -> (Path v e, c)
+             -> (Path v e, w, c)
 shortestPath measure graph context start finish =
   let
     tree = shortestPathTree measure (const $ const . (== finish)) graph context start
     f [] = []
     f path@((to, _, _) : _) =
       let
-        ((_, Tagged from _), edge) = S.findMin . edgesTo tree $ Tagged to undefined
+        ((Tagged from _, _), edge) = S.findMin . edgesTo tree $ Tagged to undefined
         path' = (from, to, edge) : path
       in
         if from == start
@@ -55,11 +57,12 @@ shortestPath measure graph context start finish =
     finish' = Tagged finish undefined
   in
     if finish' `S.member` vertices tree
-      then (init $ f [(finish, undefined, undefined)], snd . tag . fromJust $ finish' `S.lookupLE` vertices tree)
-      else ([], context)
+      then (\(x, (y, z)) -> (x, y, z)) (init $ f [(finish, undefined, undefined)], tag . fromJust $ finish' `S.lookupLE` vertices tree)
+      else ([], mempty, context)
 
 
-shortestPathTree :: (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
+shortestPathTree :: (Show v, Show e, Show w)
+                 => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
                  => (Ord v, Ord e, Ord w, Monoid w)
                  => MeasureC c e w
                  -> HaltC c v w
@@ -70,12 +73,16 @@ shortestPathTree :: (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
 shortestPathTree measure halt graph context start =
   let
     tree = mempty
-    fringe = H.singleton . H.Entry mempty $ Tagged (fromJust $ vertexLabeled graph start) (mempty, context, id)
+    fringe =
+      H.singleton
+        . H.Entry mempty
+        $ Tagged (fromJust $ vertexLabeled graph start) (mempty, context, id)
   in
     shortestPathTree' measure halt graph fringe tree
 
 
-shortestPathTree' :: (Graph g, v' ~ Vertex g, v ~ VertexLabel g, e ~ EdgeLabel g)
+shortestPathTree' :: (Show v, Show e, Show w)
+                  => (Graph g, v' ~ Vertex g, v ~ VertexLabel g, e ~ EdgeLabel g)
                   => (Ord v, Ord e, Ord w, Monoid w)
                   => MeasureC c e w
                   -> HaltC c v w

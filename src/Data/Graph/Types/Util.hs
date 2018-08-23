@@ -3,19 +3,10 @@ module Data.Graph.Types.Util (
 , TaggedGraph
 , HyperVertex(..)
 , HyperEdge(..)
-, Halt
-, HaltC
-, Measure
-, MeasureC
-, MeasureM
-, SetFlowC
-, Flows
 ) where
 
 
-import Control.Monad.State (State)
 import Data.Graph.Types.MapGraph (MapGraph)
-import Data.Map.Strict (Map)
 
 
 data Tagged a b =
@@ -44,27 +35,6 @@ data HyperVertex a =
 
 
 data HyperEdge a =
-    ForwardEdge a
-  | ReversedEdge a
+    ForwardEdge {self :: a, opposite :: HyperEdge a}
+  | ReverseEdge {self :: a, opposite :: HyperEdge a}
     deriving (Eq, Ord, Read, Show)
-
-
-type Halt vertex weight = vertex -> weight -> Bool
-
-
-type HaltC context vertex weight = context -> vertex -> weight -> Bool
-
-
-type Measure edge weight = edge -> Maybe weight
-
-
-type MeasureC context edge weight = context -> edge -> Maybe (weight, context)
-
-
-type MeasureM context edge weight = edge -> State context (Maybe weight)
-
-
-type SetFlowC context edge flow = context -> edge -> flow -> context
-
-
-type Flows e w = Map e w

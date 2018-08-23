@@ -36,6 +36,21 @@ data TiedGraph v e =
   }
     deriving (Eq, Ord)
 
+instance (Ord v, Read v, Ord e, Read e) => Read (TiedGraph v e) where
+  readsPrec p =
+    readParen (p > 10)
+      $ \ r -> do
+        ("fromAdjacencyMatrix", s) <- lex r
+        (xs,t) <- reads s
+        return (fromAdjacencyMatrix xs,t)
+
+instance (Ord v, Show v, Ord e, Show e) => Show (TiedGraph v e) where
+  showsPrec d m =
+    showParen (d > 10)
+      $ showString "fromAdjacencyMatrix ("
+      . shows (toAdjacencyMatrix m)
+      . showString ")"
+
 instance (Ord v, Ord e) => Monoid (TiedGraph v e) where
   mempty = TiedGraph mempty mempty
   mappend = (tieGraph .) . (. untieGraph) . M.unionWith mappend . untieGraph
@@ -107,7 +122,7 @@ tieGraph adjacencies =
             in
               TiedVertex{..}
         )
-          adjacencies
+        adjacencies
     outgoingEdgeTies :: Map v (Set (v, TiedEdge v e))
     outgoingEdgeTies =
       M.mapWithKey

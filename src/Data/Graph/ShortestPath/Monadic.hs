@@ -9,7 +9,7 @@ module Data.Graph.ShortestPath.Monadic (
 
 import Control.Monad.State (MonadState(..), State, runState)
 import Data.Graph.Types (Graph(..), Path)
-import Data.Graph.Types.Util (MeasureM)
+import Data.Graph.Types.Weight (MeasureM)
 
 import qualified Data.Graph.ShortestPath.Contextual as C (measurePath, shortestPath)
 
@@ -37,18 +37,19 @@ measurePath measure path =
     outside $ C.measurePath ((. measure) . inside) context path
 
 
-shortestPath :: MonadState c m
+shortestPath :: (Show v, Show e, Show w)
+             => MonadState c m
              => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
              => MeasureM c e w
              -> g
              -> v
              -> v
-             -> m (Path v e)
+             -> m (Path v e, w)
 shortestPath measure graph start finish =
   do
     context <- get
     let
-      (path, context') = C.shortestPath ((. measure) . inside) graph context start finish
+      (path, weight, context') = C.shortestPath ((. measure) . inside) graph context start finish
     put context'
-    return path
+    return (path, weight)

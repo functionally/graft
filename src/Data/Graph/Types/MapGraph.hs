@@ -14,7 +14,7 @@ module Data.Graph.Types.MapGraph (
 import Control.Arrow ((***), first)
 import Control.Monad (ap)
 import Data.Function (on)
-import Data.Graph.Types (Graph(..), MutableGraph(..))
+import Data.Graph.Types (EdgeList, Graph(..), MutableGraph(..))
 import Data.Map.Strict (Map)
 import Data.Set (Set)
 
@@ -30,7 +30,22 @@ data MapGraph v e =
   , incomingEdges :: Map v (Set ((v, v), e))
   , outgoingEdges :: Map v (Set ((v, v), e))
   }
-    deriving (Eq, Ord, Read, Show)
+    deriving (Eq, Ord)
+
+instance (Ord v, Read v, Ord e, Read e) => Read (MapGraph v e) where
+  readsPrec p =
+    readParen (p > 10)
+      $ \ r -> do
+        ("fromAdjacencyMatrix", s) <- lex r
+        (xs,t) <- reads s
+        return (fromAdjacencyMatrix xs,t)
+
+instance (Ord v, Show v, Ord e, Show e) => Show (MapGraph v e) where
+  showsPrec d m =
+    showParen (d > 10)
+      $ showString "fromAdjacencyMatrix ("
+      . shows (toAdjacencyMatrix m)
+      . showString ")"
 
 instance (Ord v, Ord e) => Monoid (MapGraph v e) where
   mempty =
@@ -68,7 +83,7 @@ instance (Ord v, Ord e) => Graph (MapGraph v e) where
   edgesFrom MapGraph{..} = (outgoingEdges M.!)
   edgesTo MapGraph{..} = (incomingEdges M.!)
   fromAdjacencyMatrix = M.foldMapWithKey $ \from -> foldl (\graph (to, label) -> addEdge' graph ((from, to), label)) mempty
-  toAdjacencyMatrix MapGraph{..} = M.map (S.map $ first fst) outgoingEdges
+  toAdjacencyMatrix MapGraph{..} = M.map (S.map $ first snd) outgoingEdges
 
 instance (Ord v, Ord e) => MutableGraph (MapGraph v e) where
   addVertex vertex MapGraph{..} =
@@ -113,8 +128,8 @@ addEdge' MapGraph{..} edge@((from, to), _) =
   }
 
 
-makeMapGraph :: (Ord v, Ord e) => [((v, v), e)] -> MapGraph v e
-makeMapGraph = foldl addEdge' mempty
+makeMapGraph :: (Ord v, Ord e) => [v] -> EdgeList v e -> MapGraph v e
+makeMapGraph = fromEdgeList
 
 
 mapGraph :: (Ord v, Ord v', Ord e, Ord e') => (v -> v') -> (e -> e') -> MapGraph v e -> MapGraph v' e'

@@ -21,7 +21,8 @@ source-repository head
   location         : https://bitbucket.org/functionally/graft.git
 
 library
-  exposed-modules  : Data.Graph.Legacy
+  exposed-modules  : Data.Graph.IO
+                     Data.Graph.Legacy
                      Data.Graph.Legacy.Algorithms
                      Data.Graph.Legacy.Examples
                      Data.Graph.Legacy.IO
@@ -37,11 +38,13 @@ library
                      Data.Graph.Types.MapGraph
                      Data.Graph.Types.TiedGraph
                      Data.Graph.Types.Util
+                     Data.Graph.Types.Weight
   hs-source-dirs   : src
   build-depends    : base         >= 4 && < 5
                    , containers
                    , heaps
                    , mtl
+                   , non-negative
                    , raft
                    , stringbuilder
   exposed          : True
@@ -59,6 +62,7 @@ test-suite test-graft
                   , fgl
                   , heaps
                   , mtl
+                  , non-negative
                   , QuickCheck
                   , raft
                   , stringbuilder

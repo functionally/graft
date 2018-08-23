@@ -1,6 +1,6 @@
-{-# LANGUAGE FlexibleContexts #-}
-{-# LANGUAGE TupleSections    #-}
-{-# LANGUAGE TypeFamilies     #-}
+{-# LANGUAGE FlexibleContexts  #-}
+{-# LANGUAGE TupleSections     #-}
+{-# LANGUAGE TypeFamilies      #-}
 
 
 module Data.Graph.Types (
@@ -86,12 +86,12 @@ class (Foldable (Vertices graph), Foldable (Edges graph)) => Graph graph where
           -> Edges graph (Edge graph)
 
   fromAdjacencyMatrix :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
-                  => AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
-                  -> graph
+                      => AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
+                      -> graph
 
   toAdjacencyMatrix :: (Ord (VertexLabel graph), Ord (EdgeLabel graph))
-                => graph
-                -> AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
+                    => graph
+                    -> AdjacencyMatrix (VertexLabel graph) (EdgeLabel graph)
 
   fromEdgeList :: (Ord (VertexLabel graph), Ord (EdgeLabel graph), Graph graph)
                => [VertexLabel graph]
@@ -104,17 +104,20 @@ class (Foldable (Vertices graph), Foldable (Edges graph)) => Graph graph where
       ++ fmap (\(from, to, edge) -> (from, S.singleton (to, edge))) es
 
   toEdgeList :: graph
-             -> EdgeList (VertexLabel graph) (EdgeLabel graph)
+             -> ([VertexLabel graph], EdgeList (VertexLabel graph) (EdgeLabel graph))
   toEdgeList graph =
-    [
-      (
-        vertexLabel graph $ vertexFrom graph edge
-      , vertexLabel graph $ vertexTo   graph edge
-      , edgeLabel graph edge
-      )
-    |
-      edge <- toList $ edges graph
-    ]
+    (
+      vertexLabels graph
+    , [
+        (
+          vertexLabel graph $ vertexFrom graph edge
+        , vertexLabel graph $ vertexTo   graph edge
+        , edgeLabel graph edge
+        )
+      |
+        edge <- toList $ edges graph
+      ]
+    )
 
 
 class Graph graph => MutableGraph graph where
