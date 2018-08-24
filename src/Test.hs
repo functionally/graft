@@ -20,12 +20,39 @@ import Data.Tuple.Util (snd3)
 
 import qualified Data.Map.Strict as M (toList)
 
-{-
+import Test.QuickCheck
+import qualified Data.Graph.Inductive.Graph as F
+import qualified Data.Graph.Inductive.Arbitrary as F
+import qualified Data.Graph.Inductive.PatriciaTree as F (Gr)
+import qualified Data.Graph.Inductive.Query.SP as F
+
 import Debug.Trace (trace)
+
 
 trace' :: (a -> String) -> a -> a
 trace' = if True then (trace =<<) else const id
--}
+
+
+prop_sample :: F.SimpleGraph F.Gr () Double -> Bool
+prop_sample g =
+  let
+    vs = fst <$> F.labNodes g
+    g' :: MapGraph Int (Int, Double)
+    g' =
+      fromEdgeList
+        vs
+        [
+          (from, to, (i, weight))
+        |
+          ((from, to, weight), i) <- zip (F.labEdges g) [1..]
+        ]
+    start : finish : _ = vs
+    p = F.sp start finish g
+    p' = shortestPath (Sum . snd) g' start finish
+  in
+       length vs < 3
+    || p == Nothing
+    || (trace' (const $ show (p, p')) $ g' == read (show g'))
 
 
 main :: IO ()
@@ -67,6 +94,8 @@ main =
         (e, f) <- M.toList fs
       , f /= 0
       ]
+
+    quickCheck prop_sample
 
 
 example :: Int -> EdgeList (HyperVertex String) (String, Double, Double)
