@@ -82,7 +82,7 @@ instance (Ord v, Ord e) => Graph (MapGraph v e) where
   edgeLabels = fmap snd . S.toList . allEdges
   edgesFrom MapGraph{..} = (outgoingEdges M.!)
   edgesTo MapGraph{..} = (incomingEdges M.!)
-  fromAdjacencyMatrix = M.foldMapWithKey $ \from -> foldl (\graph (to, label) -> addEdge' graph ((from, to), label)) mempty
+  fromAdjacencyMatrix = M.foldMapWithKey $ \from -> foldl (\graph (to, label) -> addEdge from to label graph) (addVertex from mempty)
   toAdjacencyMatrix MapGraph{..} = M.map (S.map $ first snd) outgoingEdges
 
 instance (Ord v, Ord e) => MutableGraph (MapGraph v e) where
@@ -90,12 +90,12 @@ instance (Ord v, Ord e) => MutableGraph (MapGraph v e) where
     MapGraph
       (S.insert vertex allVertices)
       allEdges
-      incomingEdges
-      outgoingEdges
+      (M.insertWith mappend vertex mempty incomingEdges)
+      (M.insertWith mappend vertex mempty outgoingEdges)
   addEdge from to edge MapGraph{..} =
     MapGraph
       (S.insert from $ S.insert to allVertices)
-      (S.insert ((from, to), undefined) allEdges)
+      (S.insert ((from, to), edge) allEdges)
       (M.insertWith mappend to   (S.singleton ((from, to), edge)) incomingEdges)
       (M.insertWith mappend from (S.singleton ((from, to), edge)) outgoingEdges)
   removeVertex vertex MapGraph{..} =
@@ -115,17 +115,6 @@ instance (Ord v, Ord e) => MutableGraph (MapGraph v e) where
       (M.adjust (S.delete edge') from outgoingEdges)
       where
         edge' = ((from, to), edge)
-
-
-addEdge' :: (Ord v, Ord e) => MapGraph v e -> ((v, v), e) -> MapGraph v e
-addEdge' MapGraph{..} edge@((from, to), _) =
-  MapGraph
-  {
-    allVertices   = S.insert from $ S.insert to allVertices
-  , allEdges      = S.insert edge allEdges
-  , incomingEdges = M.insertWith mappend to   (S.singleton edge) incomingEdges
-  , outgoingEdges = M.insertWith mappend from (S.singleton edge) outgoingEdges
-  }
 
 
 makeMapGraph :: (Ord v, Ord e) => [v] -> EdgeList v e -> MapGraph v e

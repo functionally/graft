@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeFamilies #-}
+
+
 module Data.Graph.Types.Weight (
   Halt
 , HaltC
@@ -7,6 +10,7 @@ module Data.Graph.Types.Weight (
 , SetFlowC
 , GetFlowC
 , Flows
+, netFlows
 , Flow(..)
 ) where
 
@@ -16,6 +20,8 @@ import Data.Default.Util (inf)
 import Data.Map.Strict (Map)
 import Data.Monoid.Zero (MonoidZero(..))
 import Numeric.NonNegative.Class (C(..), splitDefault)
+
+import qualified Data.Map.Strict as M (filter, foldMapWithKey, fromListWith)
 
 
 type Halt vertex weight = vertex -> weight -> Bool
@@ -40,6 +46,26 @@ type SetFlowC context edge flow = Bool -> flow -> context -> edge -> context
 
 
 type Flows e w = Map e w
+
+
+netFlows :: (Ord v, Eq w, Num w) -- FIXME
+         => (e -> (v, v))
+         -> Flows e w
+         -> Map v w
+netFlows vertices =
+  M.filter (/= 0)
+    . M.fromListWith (+)
+    . M.foldMapWithKey
+      (
+        \edge flow ->
+          let
+            (from, to) = vertices edge
+          in
+            [
+              (from,   flow)
+            , (to  , - flow)
+            ]
+      )
 
 
 newtype Flow a = Flow {unFlow :: a}
