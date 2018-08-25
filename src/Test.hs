@@ -8,10 +8,11 @@ module Main (
 ) where
 
 
+import Control.Arrow ((&&&))
 import Data.Maybe (isNothing)
 import Data.List (sort)
 import Data.Graph.IO (toGraphviz, toLines)
-import Data.Graph.MaximumFlow (maximumFlow)
+import Data.Graph.MaximumFlow (maximumFlow, minimumCostFlow)
 import Data.Graph.ShortestPath (shortestPath)
 import Data.Graph.Types (Graph(..), EdgeList)
 import Data.Graph.Types.Adjacency (AdjacencyGraph)
@@ -20,11 +21,11 @@ import Data.Graph.Types.TiedGraph (TiedGraph)
 import Data.Graph.Types.Util (HyperVertex(..))
 import Data.Graph.Types.Weight (netFlows)
 import Data.Monoid (All(..), Sum(..))
-import Data.Tuple.Util (snd3)
+import Data.Tuple.Util (snd3, trd3)
 import System.Exit (exitFailure, exitSuccess)
 import Test.QuickCheck (Arbitrary(..), Args(..), Gen, Positive(..), Result(..), label, quickCheckWithResult, stdArgs)
 
-import qualified Data.Map.Strict as M (foldMapWithKey, fromList, toList, unionWith)
+import qualified Data.Map.Strict as M (foldMapWithKey, fromList, unionWith)
 
 import qualified Data.Graph.Inductive.Graph as F (Graph(..), emap)
 import qualified Data.Graph.Inductive.Arbitrary as F (NoLoops(..), NoMultipleEdges(..), SimpleGraph)
@@ -43,6 +44,10 @@ trace' = if True then (trace =<<) else const id
 trace'' :: String -> Bool -> Bool
 trace'' t x = if True && not x then trace' (const t) x else x
 -}
+
+
+main :: IO ()
+main = if True then test else main'
 
 
 type TestFGL            = F.Gr () Double
@@ -119,6 +124,11 @@ prop_maxflow (TestGraphs (gFGL, gAdj, gMap, gTie)) =
     && check fTie
     
 
+prop_mincostflow :: TestGraphs -> Bool
+prop_mincostflow (TestGraphs (gFGL, gAdj, gMap, gTie)) =
+  True
+
+
 prop_example_1 :: Bool
 prop_example_1 =
   let
@@ -149,42 +159,35 @@ prop_example_1 =
     && fTie == answer
 
 
-main' :: IO ()
-main' =
-  do
-
-    putStrLn ""
-
-    sequence_
-      [
-        do
-          putStrLn $ "Example " ++ show n ++ ": " ++ show (example n == snd (toEdgeList g)) ++ show (g == read (show g))
-          putStrLn . unlines $ ("  " ++) <$> toLines g
-          writeFile ("example-" ++ show n ++ ".dot") $ toGraphviz ("Example " ++ show n) g
-      |
-        n <- [1..2]
-      , let g = buildExample n :: MapGraph (HyperVertex String) (String, Double, Double)
-      ]
-
-    putStrLn ""
-
-    let
-      g = buildExample 1 :: MapGraph (HyperVertex String) (String, Double, Double)
-      p = shortestPath (Sum . snd3) g HyperSource HyperSink
-    mapM_ print $ fst p
-    print $ snd p
-
-    putStrLn ""
-
-    let
-      fs = maximumFlow snd3 g HyperSource HyperSink
-    sequence_
-      [
-        print (e, f)
-      |
-        (e, f) <- M.toList fs
-      , f /= 0
-      ]
+prop_example_3 :: Bool
+prop_example_3 =
+  let
+    gAdj = buildExample 3 :: AdjacencyGraph (HyperVertex String) (String, Double, Double)
+    gMap = buildExample 3 :: MapGraph       (HyperVertex String) (String, Double, Double)
+    gTie = buildExample 3 :: TiedGraph      (HyperVertex String) (String, Double, Double)
+    answer =
+      M.fromList
+        [
+          (("0 -> 1", 4, 15), 12)
+        , (("0 -> 2", 4,  8),  8)
+        , (("1 -> 2", 2, 20),  8)
+        , (("1 -> 3", 2,  4),  4)
+        , (("1 -> 4", 6, 10),  0)
+        , (("2 -> 3", 1, 15), 12)
+        , (("2 -> 4", 3,  4),  4)
+        , (("3 -> 4", 2, 20), 11)
+        , (("4 -> 2", 3,  5),  0)
+        , (("+ -> 0", 0, 20), 20)
+        , (("3 -> -", 0,  5),  5)
+        , (("4 -> -", 0, 15), 15)
+        ]
+    fAdj = minimumCostFlow (snd3 &&& trd3)  gAdj HyperSource HyperSink
+    fMap = minimumCostFlow (snd3 &&& trd3)  gMap HyperSource HyperSink
+    fTie = minimumCostFlow (snd3 &&& trd3)  gTie HyperSource HyperSink
+  in
+       fAdj == answer
+    && fMap == answer
+    && fTie == answer
 
 
 buildExample :: (Graph g, VertexLabel g ~ HyperVertex String, EdgeLabel g ~ (String, Double, Double)) => Int -> g
@@ -220,11 +223,27 @@ example 2 =
     , (HyperVertex "T:2:BA", HyperVertex "T:2:EP", ("R1831" , 999.9, 0.67))
     , (HyperVertex "C:EP"  , HyperSink           , ("EP:-D" ,  68.1, 0.00))
     ]
+example 3 =
+  sort 
+    [
+      (HyperVertex "0", HyperVertex "1", ("0 -> 1", 4, 15))
+    , (HyperVertex "0", HyperVertex "2", ("0 -> 2", 4,  8))
+    , (HyperVertex "1", HyperVertex "2", ("1 -> 2", 2, 20))
+    , (HyperVertex "1", HyperVertex "3", ("1 -> 3", 2,  4))
+    , (HyperVertex "1", HyperVertex "4", ("1 -> 4", 6, 10))
+    , (HyperVertex "2", HyperVertex "3", ("2 -> 3", 1, 15))
+    , (HyperVertex "2", HyperVertex "4", ("2 -> 4", 3,  4))
+    , (HyperVertex "3", HyperVertex "4", ("3 -> 4", 2, 20))
+    , (HyperVertex "4", HyperVertex "2", ("4 -> 2", 3,  5))
+    , (HyperSource  ,   HyperVertex "0", ("+ -> 0", 0, 20))
+    , (HyperVertex "3", HyperSink      , ("3 -> -", 0,  5))
+    , (HyperVertex "4", HyperSink      , ("4 -> -", 0, 15))
+    ]
 example n = error $ "No example #" ++ show n ++ "."
 
 
-main :: IO ()
-main =
+test :: IO ()
+test =
   do
     let
       tests = 10000
@@ -232,14 +251,30 @@ main =
       isSuccess _         = False
     results  <- mapM (quickCheckWithResult stdArgs {maxSuccess = tests})
       [
-        label "read & show"    prop_readshow
-      , label "shortest path"  prop_shortestpath
-      , label "maximum flow"   prop_maxflow
+        label "read & show"       prop_readshow
+      , label "shortest path"     prop_shortestpath
+      , label "maximum flow"      prop_maxflow
+      , label "minimum cost flow" prop_mincostflow
       ]
-    results' <- mapM (quickCheckWithResult stdArgs {maxSuccess = tests})
+    results' <- mapM (quickCheckWithResult stdArgs {maxSuccess = 1})
       [
         label "example #1" prop_example_1
+      , label "example #3" prop_example_3
       ]
     if all isSuccess $ results ++ results'
       then exitSuccess
       else exitFailure
+
+
+main' :: IO ()
+main' =
+  sequence_
+    [
+      do
+        putStrLn $ "Example " ++ show n ++ ": " ++ show (example n == snd (toEdgeList g)) ++ " " ++ show (g == read (show g))
+        putStrLn . unlines $ ("  " ++) <$> toLines g
+        writeFile ("example-" ++ show n ++ ".dot") $ toGraphviz ("Example " ++ show n) g
+    |
+      n <- [1..3]
+    , let g = buildExample n :: MapGraph (HyperVertex String) (String, Double, Double)
+    ]

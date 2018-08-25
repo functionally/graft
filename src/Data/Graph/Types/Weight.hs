@@ -12,6 +12,7 @@ module Data.Graph.Types.Weight (
 , Flows
 , netFlows
 , Flow(..)
+, CostFlow(..)
 ) where
 
 
@@ -57,13 +58,13 @@ netFlows vertices =
     . M.fromListWith (+)
     . M.foldMapWithKey
       (
-        \edge flow ->
+        \edge flow' ->
           let
             (from, to) = vertices edge
           in
             [
-              (from,   flow)
-            , (to  , - flow)
+              (from,   flow')
+            , (to  , - flow')
             ]
       )
 
@@ -83,3 +84,28 @@ instance (RealFloat a, Num a) => MonoidZero (Flow a) where
 
 instance (RealFloat a, Num a) => C (Flow a) where
   split = splitDefault unFlow Flow
+
+
+data CostFlow a b =
+  CostFlow
+  {
+    cost :: a
+  , flow :: b
+  }
+    deriving (Eq, Read, Show)
+
+instance (Ord a, Ord b) => Ord (CostFlow a b) where
+  CostFlow cost' flow' `compare` CostFlow cost'' flow'' =
+    case cost' `compare` cost'' of
+      EQ -> flow' `compare` flow''
+      x   -> x
+
+instance (Num a, RealFloat b, Num b) => Monoid (CostFlow a b) where
+  mempty = CostFlow 0 inf
+  CostFlow cost' flow' `mappend` CostFlow cost'' flow'' =
+    CostFlow
+      (cost' + cost'')
+      $ minimum [flow', flow'']
+
+instance (RealFloat a, Num a, RealFloat b, Num b) => MonoidZero (CostFlow a b) where
+  zero = CostFlow inf 0

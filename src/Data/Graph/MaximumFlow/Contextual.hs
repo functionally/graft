@@ -14,7 +14,6 @@ import Data.Graph.Types.MapGraph (makeMapGraph)
 import Data.Graph.Types.Util (HyperEdge(..))
 import Data.Graph.Types.Weight (GetFlowC, MeasureC, SetFlowC)
 import Data.Monoid.Zero (MonoidZero(..))
-import Numeric.NonNegative.Class (C)
 
 
 setFlow :: Monoid w
@@ -28,7 +27,7 @@ setFlow set flow = foldl (\context' (_, _, edge) -> set True flow context' edge)
 
 maximumFlow :: (Show v, Show e, Show w)
             => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
-            => (Ord v, Ord e, MonoidZero w, C w)
+            => (Ord v, Ord e, Ord w, MonoidZero w)
             => GetFlowC c e w
             -> SetFlowC c e w
             -> g
