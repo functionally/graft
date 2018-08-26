@@ -97,7 +97,7 @@ data CostFlow a b =
 instance (Ord a, Ord b) => Ord (CostFlow a b) where
   CostFlow cost' flow' `compare` CostFlow cost'' flow'' =
     case cost' `compare` cost'' of
-      EQ -> flow' `compare` flow''
+      EQ -> flow'' `compare` flow'
       x   -> x
 
 instance (Num a, RealFloat b, Num b) => Monoid (CostFlow a b) where

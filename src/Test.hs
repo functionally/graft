@@ -41,7 +41,7 @@ import Debug.Trace (trace)
 
 
 trace' :: (a -> String) -> a -> a
-trace' = if False then (trace =<<) else const id
+trace' = if True then (trace =<<) else const id
 
 
 trace'' :: String -> Bool -> Bool
@@ -263,27 +263,17 @@ example 3 =
 example 4 =
   sort
     [
-      (HyperVertex "A", HyperVertex "B", ("A -> B",  135.57930968627457  ,  29.01050932594674 ))
-    , (HyperVertex "A", HyperVertex "C", ("A -> C",   14.344178273663076 ,  39.19201631386781 ))
-    , (HyperVertex "A", HyperVertex "D", ("A -> D",    3.7442258514928928,  35.83113771900464 ))
-    , (HyperVertex "A", HyperVertex "E", ("A -> E",   44.64685459256189  ,  63.19636729269409 ))
-    , (HyperVertex "A", HyperVertex "G", ("A -> G",   42.25434877223405  ,  43.177909876674136))
-    , (HyperVertex "B", HyperVertex "A", ("B -> A",   78.27246358181176  ,  58.69763930366173 ))
-    , (HyperVertex "B", HyperVertex "D", ("B -> D",   43.95326817270366  ,  23.28079778592758 ))
-    , (HyperVertex "B", HyperVertex "E", ("B -> E",   13.29127782001224  , 133.02432179747237 ))
-    , (HyperVertex "C", HyperVertex "B", ("C -> B",   15.558131793874725 ,  86.9546076519134  ))
-    , (HyperVertex "C", HyperVertex "G", ("C -> G",    4.178668672073619 ,  33.6681359389675  ))
-    , (HyperVertex "D", HyperVertex "A", ("D -> A",   23.892583825319488 ,  21.07446757739977 ))
-    , (HyperVertex "D", HyperVertex "C", ("D -> C",   32.55492159576363  ,   7.440527000373489))
-    , (HyperVertex "D", HyperVertex "E", ("D -> E",   32.254629917402845 , 110.50127448936429 ))
-    , (HyperVertex "D", HyperVertex "G", ("D -> G",    4.856386404269504 , 148.32945854923042 ))
-    , (HyperVertex "E", HyperVertex "A", ("E -> A", 3680.1503173202336   ,  24.537500676772705))
-    , (HyperVertex "E", HyperVertex "B", ("E -> B",    3.065727926896363 ,  39.22172651205008 ))
-    , (HyperVertex "F", HyperVertex "D", ("F -> D",   76.02764767323477  ,  45.09932249339651 ))
-    , (HyperVertex "F", HyperVertex "G", ("F -> G",   51.863503114543654 ,  60.40314018443845 ))
-    , (HyperVertex "G", HyperVertex "A", ("G -> A",   38.91064559113717  ,  92.28792017023495 ))
-    , (HyperVertex "G", HyperVertex "B", ("G -> B",   46.97766646957096  ,  33.56472702951771 ))
-    , (HyperVertex "G", HyperVertex "E", ("G -> E",  167.30184872233383  ,  90.13849337554056 ))
+      (HyperVertex "A", HyperVertex "B", ("A -> B",  135,  29))
+    , (HyperVertex "A", HyperVertex "C", ("A -> C",   14,  39))
+    , (HyperVertex "A", HyperVertex "D", ("A -> D",    3,  35))
+    , (HyperVertex "A", HyperVertex "E", ("A -> E",   44,  63))
+    , (HyperVertex "A", HyperVertex "G", ("A -> G",   42,  43))
+    , (HyperVertex "C", HyperVertex "B", ("C -> B",   15,  86))
+    , (HyperVertex "D", HyperVertex "C", ("D -> C",   32,   7))
+    , (HyperVertex "D", HyperVertex "E", ("D -> E",   32, 110))
+    , (HyperVertex "D", HyperVertex "G", ("D -> G",    4, 148))
+    , (HyperVertex "E", HyperVertex "B", ("E -> B",    3,  39))
+    , (HyperVertex "G", HyperVertex "B", ("G -> B",   46,  33))
     ]
 example n = error $ "No example #" ++ show n ++ "."
 
@@ -327,18 +317,18 @@ prop_example_3 =
     answer =
       M.fromList
         [
-          (("0 -> 1", 4, 15), 12)
+          (("+ -> 0", 0, 20), 20)
+        , (("0 -> 1", 4, 15), 12)
         , (("0 -> 2", 4,  8),  8)
         , (("1 -> 2", 2, 20),  8)
         , (("1 -> 3", 2,  4),  4)
         , (("1 -> 4", 6, 10),  0)
-        , (("2 -> 3", 1, 15), 12)
-        , (("2 -> 4", 3,  4),  4)
-        , (("3 -> 4", 2, 20), 11)
-        , (("4 -> 2", 3,  5),  0)
-        , (("+ -> 0", 0, 20), 20)
+        , (("2 -> 3", 1, 15), 13)
+        , (("2 -> 4", 3,  4),  3)
         , (("3 -> -", 0,  5),  5)
+        , (("3 -> 4", 2, 20), 12)
         , (("4 -> -", 0, 15), 15)
+        , (("4 -> 2", 3,  5),  0)
         ]
     fAdj = minimumCostFlow (snd3 &&& trd3)  gAdj HyperSource HyperSink
     fMap = minimumCostFlow (snd3 &&& trd3)  gMap HyperSource HyperSink
@@ -406,7 +396,7 @@ test :: IO ()
 test =
   do
     let
-      tests = 10000
+      tests = 100
       isSuccess Success{} = True
       isSuccess _         = False
     results  <- mapM (quickCheckWithResult stdArgs {maxSuccess = tests})
@@ -436,6 +426,6 @@ main' =
         putStrLn . unlines $ ("  " ++) <$> toLines g
         writeFile ("example-" ++ show n ++ ".dot") $ toGraphviz ("Example " ++ show n) g
     |
-      n <- [1..3]
+      n <- [1..4]
     , let g = buildExample n :: MapGraph (HyperVertex String) (String, Double, Double)
     ]

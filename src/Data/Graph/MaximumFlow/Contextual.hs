@@ -14,6 +14,9 @@ import Data.Graph.Types.MapGraph (makeMapGraph)
 import Data.Graph.Types.Util (HyperEdge(..))
 import Data.Graph.Types.Weight (GetFlowC, MeasureC, SetFlowC)
 import Data.Monoid.Zero (MonoidZero(..))
+import Debug.Trace (trace)
+
+trace' = (trace =<<)
 
 
 setFlow :: Monoid w
@@ -25,7 +28,7 @@ setFlow :: Monoid w
 setFlow set flow = foldl (\context' (_, _, edge) -> set True flow context' edge)
 
 
-maximumFlow :: (Show v, Show e, Show w)
+maximumFlow :: (Show v, Show e, Show w, Show c)
             => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
             => (Ord v, Ord e, Ord w, MonoidZero w)
             => GetFlowC c e w
@@ -58,7 +61,7 @@ maximumFlow measure set graph context start finish =
     maximumFlow' measure' set' hyper context start finish
    
 
-maximumFlow' :: (Show v, Show e, Show w)
+maximumFlow' :: (Show v, Show e, Show w, Show c)
              => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
              => MeasureC c e w
@@ -75,6 +78,6 @@ maximumFlow' measure set graph context start finish =
     -- Record the flow along the path.
     context' = setFlow set flow context path
   in
-    if null path
+    if null $ trace' (const $ show (path, flow, context, context')) path
       then context
       else maximumFlow' measure set graph context' start finish

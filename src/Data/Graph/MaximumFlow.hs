@@ -76,12 +76,8 @@ minimumCostFlow measure graph start finish =
       in
         (
           (
-            if flow /= capacity
-              then CostFlow cost $ capacity - flow
-              else zero
-          , if flow /= 0
-              then CostFlow (- cost) flow
-              else zero
+            if flow < capacity then CostFlow    cost  $ capacity - flow else zero 
+          , if flow > 0        then CostFlow (- cost)              flow else zero
           )
         , context
         )
