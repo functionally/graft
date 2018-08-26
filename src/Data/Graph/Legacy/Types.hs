@@ -13,7 +13,6 @@ module Data.Graph.Legacy.Types (
 , Edge(..)
 , addEdge
 , makeGraph
-, Valid
 , Measure
 , MeasureCost
 , MeasureCapacity
@@ -137,9 +136,6 @@ addEdge Graph{..} (from, to, edge) =
 
 makeGraph :: (Ord v, Ord e) => [(v, v, e)] -> Graph v e
 makeGraph = foldl addEdge mempty
-
-
-type Valid weight = weight -> Bool
 
 
 type Measure context edge weight = context -> edge -> Maybe (weight, context)
