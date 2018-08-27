@@ -6,7 +6,7 @@
 }:
 mkDerivation {
   pname = "graft";
-  version = "0.2.0.7";
+  version = "0.2.0.8";
   src = ./.;
   buildDepends = [
     cabal-install

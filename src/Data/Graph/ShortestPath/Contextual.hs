@@ -21,15 +21,10 @@ import Data.Graph.Types.Weight (HaltC, MeasureC)
 import Data.Maybe (catMaybes, fromJust)
 import Data.Monoid ((<>))
 import Data.Heap (Heap)
-import Debug.Trace (trace)
 
 import qualified Data.Heap as H (Entry(..), insert, null, singleton, uncons)
 import qualified Data.Map as M -- FIXME
 import qualified Data.Set as S (findMin, lookupLE, member, notMember)
-
-
-trace' :: (a -> String) -> a -> a
-trace' = if True then (trace =<<) else const id
 
 
 measurePath :: Monoid w
@@ -178,7 +173,7 @@ shortestPathBellmanFord measure graph context start finish =
               to' = vertexTo graph edge'
               to = vertexLabel graph to'
         ]
-    final = foldl (\previous i -> trace' (const $ "RELAX\t" ++ show i) $ relax previous) initial [1..length(toList $ vertices graph)]
+    final = foldl (const . relax) initial [1..length(toList $ vertices graph)]
     makePath path' (_, (segment@(from, _, _), _))
       | from == start = segment : path'
       | otherwise     = makePath (segment : path') (final M.! from)

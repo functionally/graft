@@ -34,7 +34,7 @@ measurePath measure = fmap fst . C.measurePath (strip measure) ()
 shortestPath :: (Show v, Show e, Show w)
              => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
-             => Bool
+             => Bool  -- FIXME: Roundoff errors can create negative cycles
              -> Measure e w
              -> g
              -> v
