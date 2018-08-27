@@ -89,15 +89,15 @@ prop_readshow (TestGraphs (_, gAdj, gMap, gTie)) =
   && gTie == read (show gTie)
 
 
-prop_shortestpath :: TestGraphs -> Bool
-prop_shortestpath (TestGraphs (gFGL, gAdj, gMap, gTie)) =
+prop_shortestpath :: Bool -> TestGraphs -> Bool
+prop_shortestpath negativeWeights (TestGraphs (gFGL, gAdj, gMap, gTie)) =
   let
     vs = fst <$> F.labNodes gFGL
     start : finish : _ = vs
     dFGL = F.spLength start finish gFGL
-    (pAdj, Sum dAdj) = shortestPath (Sum . snd) gAdj start finish
-    (pMap, Sum dMap) = shortestPath (Sum . snd) gMap start finish
-    (pTie, Sum dTie) = shortestPath (Sum . snd) gTie start finish
+    (pAdj, Sum dAdj) = shortestPath negativeWeights (Sum . snd) gAdj start finish
+    (pMap, Sum dMap) = shortestPath negativeWeights (Sum . snd) gMap start finish
+    (pTie, Sum dTie) = shortestPath negativeWeights (Sum . snd) gTie start finish
   in
        length vs < 3
     || (isNothing dFGL && null pAdj || dFGL == Just dAdj)
@@ -377,7 +377,7 @@ prop_example_4 =
         (e, _) <- sortBy (compare `on` snd) $ M.toList es
       , let (_, c, _) = edgeLabel gAdj e
       ] 
-    L.Optimal (reference, solution) = L.simplex (L.Minimize costConstraint) (L.Sparse $ flowConstraint ++ capacityConstraint) []
+    L.Optimal (reference, _solution) = L.simplex (L.Minimize costConstraint) (L.Sparse $ flowConstraint ++ capacityConstraint) []
     total c =
       sum
         [
@@ -388,23 +388,23 @@ prop_example_4 =
     fAdj = minimumCostFlow (snd3 &&& trd3)  gAdj start finish
     cAdj = total fAdj
   in
-    trace' (const $ show (reference, solution, cAdj, fAdj)) True
---  (9401.970102388144,[29.010509325946746,39.19201631386781,35.83113771900464,39.22172651205008,5.174116310886564,0.0,0.0,0.0,46.6325433142413,0.0,0.0,7.440527000373489,0.0,28.390610718631148,0.0,39.22172651205008,0.0,0.0,0.0,33.56472702951771,0.0],10111.898266956787,fromList [(("A -> B",135.57930968627457,29.01050932594674),29.01050932594674),(("A -> C",14.344178273663076,39.19201631386781),39.19201631386781),(("A -> D",3.7442258514928928,35.83113771900464),35.83113771900464),(("A -> E",44.64685459256189,63.19636729269409),10.831115793418935),(("A -> G",42.25434877223405,43.177909876674136),33.56472702951771),(("B -> A",78.27246358181176,58.69763930366173),0.0),(("B -> D",43.95326817270366,23.28079778592758),0.0),(("B -> E",13.29127782001224,133.02432179747237),0.0),(("C -> B",15.558131793874725,86.9546076519134),46.6325433142413),(("C -> G",4.178668672073619,33.6681359389675),0.0),(("D -> A",23.892583825319488,21.07446757739977),0.0),(("D -> C",32.55492159576363,7.440527000373489),7.440527000373489),(("D -> E",32.254629917402845,110.50127448936429),28.390610718631148),(("D -> G",4.856386404269504,148.32945854923042),0.0),(("E -> A",3680.1503173202336,24.537500676772705),0.0),(("E -> B",3.065727926896363,39.22172651205008),39.22172651205008),(("F -> D",76.02764767323477,45.09932249339651),0.0),(("F -> G",51.863503114543654,60.40314018443845),0.0),(("G -> A",38.91064559113717,92.28792017023495),0.0),(("G -> B",46.97766646957096,33.56472702951771),33.56472702951771),(("G -> E",167.30184872233383,90.13849337554056),0.0)])
+    reference == cAdj
   
 
 test :: IO ()
 test =
   do
     let
-      tests = 100
+      tests = 10000
       isSuccess Success{} = True
       isSuccess _         = False
     results  <- mapM (quickCheckWithResult stdArgs {maxSuccess = tests})
       [
-        label "read & show"       prop_readshow
-      , label "shortest path"     prop_shortestpath
-      , label "maximum flow"      prop_maxflow
-      , label "minimum cost flow" prop_mincostflow
+        label "read & show"                    prop_readshow
+      , label "shortest path [Dijkstra]"     $ prop_shortestpath False
+      , label "shortest path [Bellman-Ford]" $ prop_shortestpath True
+      , label "maximum flow"                   prop_maxflow
+      , label "minimum cost flow"              prop_mincostflow
       ]
     results' <- mapM (quickCheckWithResult stdArgs {maxSuccess = 1})
       [
@@ -426,6 +426,6 @@ main' =
         putStrLn . unlines $ ("  " ++) <$> toLines g
         writeFile ("example-" ++ show n ++ ".dot") $ toGraphviz ("Example " ++ show n) g
     |
-      n <- [1..4]
+      n <- [1..1]
     , let g = buildExample n :: MapGraph (HyperVertex String) (String, Double, Double)
     ]

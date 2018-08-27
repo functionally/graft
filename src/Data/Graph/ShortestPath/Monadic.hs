@@ -41,15 +41,16 @@ shortestPath :: (Show v, Show e, Show w)
              => MonadState c m
              => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
-             => MeasureM c e w
+             => Bool
+             -> MeasureM c e w
              -> g
              -> v
              -> v
              -> m (Path v e, w)
-shortestPath measure graph start finish =
+shortestPath negativeWeights measure graph start finish =
   do
     context <- get
     let
-      (path, weight, context') = C.shortestPath ((. measure) . inside) graph context start finish
+      (path, weight, context') = C.shortestPath negativeWeights ((. measure) . inside) graph context start finish
     put context'
     return (path, weight)

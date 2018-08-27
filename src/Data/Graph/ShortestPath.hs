@@ -17,7 +17,7 @@ import Data.Graph.Types.Util (Tagged(..), TaggedGraph)
 import Data.Graph.Types.Weight (Halt, Measure, MeasureC)
 import Data.Tuple.Util (fst3, snd3)
 
-import qualified Data.Graph.ShortestPath.Contextual as C (measurePath, shortestPath, shortestPathTree)
+import qualified Data.Graph.ShortestPath.Contextual as C (measurePath, shortestPathBellmanFord, shortestPathDijkstra, shortestPathTreeDijkstra)
 
 
 strip :: Measure e w -> MeasureC () e w
@@ -34,12 +34,15 @@ measurePath measure = fmap fst . C.measurePath (strip measure) ()
 shortestPath :: (Show v, Show e, Show w)
              => (Graph g, v ~ VertexLabel g, e ~ EdgeLabel g)
              => (Ord v, Ord e, Ord w, Monoid w)
-             => Measure e w
+             => Bool
+             -> Measure e w
              -> g
              -> v
              -> v
              -> (Path v e, w)
-shortestPath measure graph = ((fst3 &&& snd3) .) . C.shortestPath (strip measure) graph ()
+shortestPath negativeWeights measure graph =
+  ((fst3 &&& snd3) .)
+    . (if negativeWeights then C.shortestPathBellmanFord else C.shortestPathDijkstra) (strip measure) graph ()
 
 
 shortestPathTree :: (Show v, Show e, Show w)
@@ -52,4 +55,4 @@ shortestPathTree :: (Show v, Show e, Show w)
                  -> TaggedGraph v e w
 shortestPathTree measure halt graph =
   mapVertices (\(Tagged vertex (weight, ())) -> Tagged vertex weight)
-    . C.shortestPathTree (strip measure) (const halt) graph ()
+    . C.shortestPathTreeDijkstra (strip measure) (const halt) graph ()

@@ -14,9 +14,6 @@ import Data.Graph.Types.MapGraph (makeMapGraph)
 import Data.Graph.Types.Util (HyperEdge(..))
 import Data.Graph.Types.Weight (GetFlowC, MeasureC, SetFlowC)
 import Data.Monoid.Zero (MonoidZero(..))
-import Debug.Trace (trace)
-
-trace' = (trace =<<)
 
 
 setFlow :: Monoid w
@@ -74,10 +71,10 @@ maximumFlow' :: (Show v, Show e, Show w, Show c)
 maximumFlow' measure set graph context start finish =
   let
     -- Find a shortest path and its flow.
-    (path, flow, _) = shortestPath measure graph context start finish
+    (path, flow, _) = shortestPath True measure graph context start finish
     -- Record the flow along the path.
     context' = setFlow set flow context path
   in
-    if null $ trace' (const $ show (path, flow, context, context')) path
+    if null path
       then context
       else maximumFlow' measure set graph context' start finish
