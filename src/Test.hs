@@ -192,7 +192,7 @@ prop_mincostflow (TestGraphs' (gAdj, gMap, gTie)) =
         (e, _) <- sortBy (compare `on` snd) $ M.toList es
       , let (_, (c, _)) = edgeLabel gAdj e
       ] 
-    L.Optimal (reference, _) = L.simplex (L.Minimize costConstraint) (L.Sparse $ flowConstraint ++ capacityConstraint) []
+    L.Optimal (reference, _) = trace' (const $ show (vertexLabels gAdj, edgeLabels gAdj)) $ L.simplex (L.Minimize costConstraint) (L.Sparse $ flowConstraint ++ capacityConstraint) []
     total c =
       sum
         [
@@ -275,6 +275,44 @@ example 4 =
     , (HyperVertex "E", HyperVertex "B", ("E -> B",    3,  39))
     , (HyperVertex "G", HyperVertex "B", ("G -> B",   46,  33))
     ]
+example 5 =
+  sort
+    [
+      (HyperVertex "-51", HyperVertex "  3", ("-51 ->  3",  163.2759627122456  ,   72.2769546463097   ))
+    , (HyperVertex "-51", HyperVertex " 47", ("-51 -> 47",   94.36360894100373 ,   89.7782144337968   ))
+    , (HyperVertex "-18", HyperVertex " -8", ("-18 -> -8",  254.8914612649748  ,   76.9006139281888   ))
+    , (HyperVertex "-18", HyperVertex " 32", ("-18 -> 32",   56.14298988425839 , 1090.39209707493     ))
+    , (HyperVertex " -8", HyperVertex "-18", (" -8 ->-18",    2.767169816649054,   61.29921020779062  ))
+    , (HyperVertex " -8", HyperVertex " 47", (" -8 -> 47",   19.008449671407494,   74.37446366854016  ))
+    , (HyperVertex " -8", HyperVertex " 58", (" -8 -> 58",  193.3707193876969  ,   23.597985048028526 ))
+    , (HyperVertex "  3", HyperVertex "-51", ("  3 ->-51",   12.298407769517826,  123.79581142962333  ))
+    , (HyperVertex "  3", HyperVertex " 47", ("  3 -> 47",  114.19378674414946 ,    2.5913858580612135))
+    , (HyperVertex "  5", HyperVertex "-51", ("  5 ->-51",  201.963304240616   ,    4.1514298465543416))
+    , (HyperVertex "  5", HyperVertex "-18", ("  5 ->-18", 1000.7751883985791  ,   92.09805736236967  ))
+    , (HyperVertex "  5", HyperVertex " -8", ("  5 -> -8",   73.1183209863981  ,   55.61306179329624  ))
+    , (HyperVertex "  5", HyperVertex "  3", ("  5 ->  3",    7.695308892502776,   80.59123248350916  ))
+    , (HyperVertex "  5", HyperVertex "  8", ("  5 ->  8",    9.453040138945308,  416.75725622872284  ))
+    , (HyperVertex "  5", HyperVertex " 21", ("  5 -> 21",  131.51060513931805 ,  104.83763927808187  ))
+    , (HyperVertex "  5", HyperVertex " 32", ("  5 -> 32",   70.51540389131019 ,  248.43584611663215  ))
+    , (HyperVertex "  8", HyperVertex " -8", ("  8 -> -8",   64.67487081331834 ,   67.68831013625415  ))
+    , (HyperVertex "  8", HyperVertex "  5", ("  8 ->  5",    8.639843283558937,  351.66287562290995  ))
+    , (HyperVertex "  8", HyperVertex " 58", ("  8 -> 58",   33.53306080912911 ,   32.021741770072886 ))
+    , (HyperVertex " 21", HyperVertex "-18", (" 21 ->-18",   16.825879479072192,   29.83081634181621  ))
+    , (HyperVertex " 21", HyperVertex " -8", (" 21 -> -8",   66.82441106114995 ,   57.445664835932575 ))
+    , (HyperVertex " 21", HyperVertex "  8", (" 21 ->  8",    6.089828719548931,   88.29165073403323  ))
+    , (HyperVertex " 21", HyperVertex " 32", (" 21 -> 32",    4.175662305604122,   93.0372870656308   ))
+    , (HyperVertex " 32", HyperVertex "-51", (" 32 ->-51",  482.04946669417023 ,  303.6907381601643   ))
+    , (HyperVertex " 32", HyperVertex "  8", (" 32 ->  8",   11.96244776672608 ,   26.715334723821716 ))
+    , (HyperVertex " 32", HyperVertex " 21", (" 32 -> 21",   48.992587906652744,   76.0396092545033   ))
+    , (HyperVertex " 32", HyperVertex " 58", (" 32 -> 58",   58.495717441731934,    1.5470546781805221))
+    , (HyperVertex " 47", HyperVertex "  3", (" 47 ->  3",  167.26463062138774 ,   28.096549845584622 ))
+    , (HyperVertex " 47", HyperVertex "  5", (" 47 ->  5",   64.96995653348121 ,   21.114800020496922 ))
+    , (HyperVertex " 47", HyperVertex " 32", (" 47 -> 32",   89.62500242004171 ,  290.62323460036095  ))
+    , (HyperVertex " 58", HyperVertex "-18", (" 58 ->-18",  114.86782481137261 ,    0.2201591442574662))
+    , (HyperVertex " 58", HyperVertex "  5", (" 58 ->  5",   63.089796817212985,   44.52416436842465  ))
+    , (HyperVertex " 58", HyperVertex " 32", (" 58 -> 32",   10.02733871920842 ,   44.85496855889023  ))
+    , (HyperVertex " 58", HyperVertex " 47", (" 58 -> 47",   48.587972528464064,   14.429136244864297 ))
+    ]
 example n = error $ "No example #" ++ show n ++ "."
 
 
@@ -338,6 +376,7 @@ prop_example_3 =
     && fMap == answer
     && fTie == answer
 
+
 prop_example_4 :: Bool
 prop_example_4 =
   let
@@ -391,11 +430,64 @@ prop_example_4 =
     reference == cAdj
   
 
+prop_example_5 :: Bool
+prop_example_5 =
+  let
+    gAdj = buildExample 5 :: AdjacencyGraph (HyperVertex String) (String, Double, Double)
+    start  = HyperVertex "-51"
+    finish = HyperVertex "-18"
+    mf = foldl ((maximum .) . (. return) . (:)) 0 . netFlows (\([from, ' ', '-', '>', ' ', to], _, _) -> ([from], [to])) $ maximumFlow trd3 gAdj start finish
+    es = M.fromList $ zip (toList $ edges gAdj) [1..]
+    flowConstraint =
+      [
+        (
+          [ 1 L.# (es M.! e) | e <- toList $ edgesFrom gAdj v]
+          ++
+          [-1 L.# (es M.! e) | e <- toList $ edgesTo   gAdj v]
+        )
+        L.:==:
+        (
+          case (vertexLabel gAdj v == start, vertexLabel gAdj v == finish) of
+            (True, _   ) -> mf
+            (_   , True) -> - mf
+            _            -> 0
+        )
+      |
+        v <- toList $ vertices gAdj
+      ]
+    capacityConstraint =
+      [
+        [1 L.# i] L.:<=: w
+      |
+        (e, i) <- M.toList es
+      , let (_, _, w) = edgeLabel gAdj e
+      ]
+    costConstraint =
+      [
+        c
+      |
+        (e, _) <- sortBy (compare `on` snd) $ M.toList es
+      , let (_, c, _) = edgeLabel gAdj e
+      ] 
+    L.Optimal (reference, _solution) = L.simplex (L.Minimize costConstraint) (L.Sparse $ flowConstraint ++ capacityConstraint) []
+    total c =
+      sum
+        [
+          cost * flow
+        |
+          ((_, cost, _), flow) <- M.toList c
+        ]
+    fAdj = minimumCostFlow (snd3 &&& trd3)  gAdj start finish
+    cAdj = total fAdj
+  in
+    reference == cAdj
+  
+
 test :: IO ()
 test =
   do
     let
-      tests = 10000
+      tests = 100
       isSuccess Success{} = True
       isSuccess _         = False
     results  <- mapM (quickCheckWithResult stdArgs {maxSuccess = tests})
@@ -404,13 +496,14 @@ test =
       , label "shortest path [Dijkstra]"     $ prop_shortestpath False
       , label "shortest path [Bellman-Ford]" $ prop_shortestpath True
       , label "maximum flow"                   prop_maxflow
-      , label "minimum cost flow"              prop_mincostflow
+--    , label "minimum cost flow"              prop_mincostflow
       ]
     results' <- mapM (quickCheckWithResult stdArgs {maxSuccess = 1})
       [
         label "example #1" prop_example_1
       , label "example #3" prop_example_3
       , label "example #4" prop_example_4
+      , label "example #5" prop_example_5
       ]
     if all isSuccess $ results ++ results'
       then exitSuccess
@@ -426,6 +519,6 @@ main' =
         putStrLn . unlines $ ("  " ++) <$> toLines g
         writeFile ("example-" ++ show n ++ ".dot") $ toGraphviz ("Example " ++ show n) g
     |
-      n <- [1..1]
+      n <- [1..5]
     , let g = buildExample n :: MapGraph (HyperVertex String) (String, Double, Double)
     ]

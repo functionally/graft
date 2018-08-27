@@ -11,9 +11,14 @@ module Data.Graph.MaximumFlow (
 import Data.Graph.Types (Graph(..))
 import Data.Graph.Types.Weight (CostFlow(CostFlow), Flow(..), Flows, Measure)
 import Data.Monoid.Zero (zero)
+import Debug.Trace (trace)
 
 import qualified Data.Graph.MaximumFlow.Contextual as C (maximumFlow)
 import qualified Data.Map.Strict as M ((!), empty, insert)
+
+
+trace' :: (a -> String) -> a -> a
+trace' = if True then (trace =<<) else const id
 
 
 maximumFlow :: (Show v, Show e, Show w)
@@ -98,6 +103,6 @@ minimumCostFlow measure graph start finish =
         measure'
         set'
         graph
-        (foldr (`M.insert` 0) M.empty $ edgeLabels graph)
+        (trace' (const $ unlines ["VERTICES\t" ++ show (vertexLabels graph), "EDGES\t" ++ show (edgeLabels graph)]) $ foldr (`M.insert` 0) M.empty $ edgeLabels graph)
         start
         finish
