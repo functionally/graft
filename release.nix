@@ -7,12 +7,15 @@ let
         packages = pkgs.haskell.packages // {
           "${compiler}" = pkgs.haskell.packages."${compiler}".override {
             overrides = haskellPackagesNew: haskellPackagesOld: rec {
+              mkDerivation = args: haskellPackagesOld.mkDerivation ( args // {
+                enableLibraryProfiling = true;
+              # doCheck = false;
+                doHaddock = false;
+              });
               graft =
                 haskellPackagesNew.callPackage ./default.nix { };
               heaps =
                 haskellPackagesNew.callPackage ./heaps.nix { };
-#             extended-reals =
-#               pkgs.haskell.lib.dontCheck haskellPackagesOld.extended-reals;
             };
           };
         };

@@ -6,7 +6,7 @@
 }:
 mkDerivation {
   pname = "graft";
-  version = "0.2.0.8";
+  version = "0.2.0.9";
   src = ./.;
   buildDepends = [
     cabal-install
@@ -42,6 +42,8 @@ mkDerivation {
     hmatrix-glpk
     QuickCheck
   ];
+# doHaddock = false;
+  doCheck = true;
   homepage = "https://bitbucket.org/functionally/graft";
   description = "Graph algorithms";
   license = stdenv.lib.licenses.mit;
