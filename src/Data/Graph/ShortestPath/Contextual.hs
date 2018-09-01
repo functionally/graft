@@ -158,32 +158,32 @@ shortestPathBellmanFord measure graph context start finish =
   let
     Just start' = vertexLabeled graph start
     initial = M.singleton start (mempty, ((undefined, start, undefined), start'))
---  relax provisional =
---    M.unionWith ((minimumBy (compare `on` fst) .) . (. return) . (:)) provisional
---      . M.fromListWith ((minimumBy (compare `on` fst) .) . (. return) . (:))
---      $ catMaybes
---      [
---        do
---          distance' <- (distance <>) . fst <$> measure context edge
---          return (to, (distance', ((from, to, edge), to')))
---      |
---        (from, (distance, (_, from'))) <- M.toList provisional
---      , edge' <- toList $ edgesFrom graph from'
---      , let edge = edgeLabel graph edge'
---            to' = vertexTo graph edge'
---            to = vertexLabel graph to'
---      ]
-    relax provisional = foldl relax' provisional $ M.toList provisional
-    relax' provisional (from, (distance, (_, from'))) = foldl (relax'' from distance) provisional $ edgesFrom graph from'
-    relax'' from distance provisional edge' =
-      maybe provisional ($ provisional)
-        $ do 
-            let
-              edge = edgeLabel graph edge'
+    relax provisional =
+      M.unionWith ((minimumBy (compare `on` fst) .) . (. return) . (:)) provisional
+        . M.fromListWith ((minimumBy (compare `on` fst) .) . (. return) . (:))
+        $ catMaybes
+        [
+          do
+            distance' <- (distance <>) . fst <$> measure context edge
+            return (to, (distance', ((from, to, edge), to')))
+        |
+          (from, (distance, (_, from'))) <- M.toList provisional
+        , edge' <- toList $ edgesFrom graph from'
+        , let edge = edgeLabel graph edge'
               to' = vertexTo graph edge'
               to = vertexLabel graph to'
-            distance' <- (distance <>) . fst <$> measure context edge
-            return $ M.insertWith ((minimumBy (compare `on` fst) .) . (. return) . (:)) to (distance', ((from, to, edge), to'))
+        ]
+--  relax provisional = foldl relax' provisional $ M.toList provisional
+--  relax' provisional (from, (distance, (_, from'))) = foldl (relax'' from distance) provisional $ edgesFrom graph from'
+--  relax'' from distance provisional edge' =
+--    maybe provisional ($ provisional)
+--      $ do 
+--          let
+--            edge = edgeLabel graph edge'
+--            to' = vertexTo graph edge'
+--            to = vertexLabel graph to'
+--          distance' <- (distance <>) . fst <$> measure context edge
+--          return $ M.insertWith ((minimumBy (compare `on` fst) .) . (. return) . (:)) to (distance', ((from, to, edge), to'))
     final = foldl (const . relax) initial $ vertices graph
     makePath path' (_, (segment@(from, _, _), _))
       | from == start = segment : path'
