@@ -7,7 +7,6 @@ module Data.Graph.MaximumFlow.Contextual (
 ) where
 
 
-import Control.Arrow (first)
 import Data.Graph.ShortestPath.Contextual (shortestPath)
 import Data.Graph.Types (Graph(..), Path)
 import Data.Graph.Types.MapGraph (makeMapGraph)
@@ -50,8 +49,8 @@ maximumFlow measure set graph context start finish =
         |
           (from, to, edge) <- originalEdges
         ]
-    measure'  context' (ForwardEdge edge) = nonzero . first fst $ measure context' edge
-    measure'  context' (ReverseEdge edge) = nonzero . first snd $ measure context' edge
+    measure'  context' (ForwardEdge edge) = nonzero $ measure True  context' edge
+    measure'  context' (ReverseEdge edge) = nonzero $ measure False context' edge
     set' _ flow context' (ForwardEdge edge) = set True  flow context' edge
     set' _ flow context' (ReverseEdge edge) = set False flow context' edge
   in

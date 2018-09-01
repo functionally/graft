@@ -26,15 +26,14 @@ maximumFlow :: (Show v, Show e, Show w)
             -> Flows e w
 maximumFlow measure graph start finish =
   let
-    measure' context edge =
+    measure' forward context edge =
       let
          flow = context M.! edge
       in
         (
-          (
-            Flow $ measure edge - flow
-          , Flow flow
-          )
+          if forward
+            then Flow $ measure edge - flow
+            else Flow flow
         , context
         )
     set' forward flow context edge =
@@ -69,16 +68,15 @@ minimumCostFlow :: (Show v, Show e, Show c, Show w)
                 -> Flows e w
 minimumCostFlow measure graph start finish =
   let
-    measure' context edge =
+    measure' forward context edge =
       let
          flow = context M.! edge
          (cost, capacity) = measure edge
       in
         (
-          (
-            if flow < capacity then CostFlow    cost  $ capacity - flow else zero 
-          , if flow > 0        then CostFlow (- cost)              flow else zero
-          )
+          if forward
+            then if flow < capacity then CostFlow    cost  $ capacity - flow else zero 
+            else if flow > 0        then CostFlow (- cost)              flow else zero
         , context
         )
     set' forward (CostFlow _ flow) context edge =

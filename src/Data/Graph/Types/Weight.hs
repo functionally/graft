@@ -7,8 +7,8 @@ module Data.Graph.Types.Weight (
 , Measure
 , MeasureC
 , MeasureM
-, SetFlowC
 , GetFlowC
+, SetFlowC
 , Flows
 , netFlows
 , Flow(..)
@@ -40,7 +40,7 @@ type MeasureC context edge weight = context -> edge -> Maybe (weight, context)
 type MeasureM context edge weight = edge -> State context (Maybe weight)
 
 
-type GetFlowC context edge flow = context -> edge -> ((flow, flow), context)
+type GetFlowC context edge flow = Bool -> context -> edge -> (flow, context)
 
 
 type SetFlowC context edge flow = Bool -> flow -> context -> edge -> context
