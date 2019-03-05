@@ -1,0 +1,20 @@
+image: haskell:8.2.2
+
+pipelines:
+
+  default:
+    - step:
+        name: build
+        caches:
+          - cabal
+        script:
+          - cabal update
+          - cabal install --dependencies-only
+          - cabal configure
+          - cabal build
+        artifacts:
+          - dist/build/**
+
+definitions:
+  caches:
+    cabal: ~/.cabal
